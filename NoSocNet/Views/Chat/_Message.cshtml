@@ -1,0 +1,18 @@
+﻿@model MessageViewModel
+@{
+    Layout = null;
+
+}
+@inject IIdentityService<User> identityService
+
+<p class="@(identityService.CurrentUserId==Model.SenderId?"owner":"") message">
+    @Model.Text
+    <span class="message-info">
+        <span class="message-date">
+            @Model.SendDate.ToString("yyyy-MM-dd")
+        </span>
+        <span class="message-user">
+            @Model.SenderUserName
+        </span>
+    </span>
+</p>

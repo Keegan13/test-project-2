@@ -10,9 +10,15 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using NoSocNet.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using NoSocNet.Infrastructure.Services;
+using NoSocNet.BLL.Services;
+using NoSocNet.DAL.Models;
+using NoSocNet.DAL.Context;
+using AutoMapper;
+using NoSocNet.BLL.Models;
+using NoSocNet.Models;
 
 namespace NoSocNet
 {
@@ -35,10 +41,27 @@ namespace NoSocNet
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            services.AddAutoMapper(new[] {
+                typeof(ApplicationDbContext).Assembly,
+                typeof(Message<,>).Assembly,
+                typeof(MessageViewModel).Assembly
+            });
+
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
-            services.AddDefaultIdentity<IdentityUser>()
+
+            services.AddHttpContextAccessor();
+
+            services.AddScoped<DbContext, ApplicationDbContext>(factory => factory.GetRequiredService<ApplicationDbContext>());
+
+            services.AddScoped<IIdentityService<User>, IdentityService>();
+            services.AddScoped<IApplicationUserStore<User>, ApplicationUserStore>();
+            services.AddSingleton<IHubSender<User, string>, StaticHubSender>();
+            services.AddScoped<IChatService<User, string>, ChatService>();
+
+
+            services.AddDefaultIdentity<User>()
                 .AddDefaultUI(UIFramework.Bootstrap4)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
@@ -70,7 +93,11 @@ namespace NoSocNet
             {
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
+                    template: "{controller=Chat}/{action=Index}/{id?}");
+                routes.MapRoute(
+                    name: "api",
+                    template: "api/{controller}/{id?}",
+                    defaults: new { Action = "Index" });
             });
         }
     }

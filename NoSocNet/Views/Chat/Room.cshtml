@@ -1,0 +1,46 @@
+﻿@model ChatRoomViewModel
+@{
+    ViewData["Title"] = $"Chat room {Model.Id}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@inject IIdentityService<User> identity
+<h1>Room @Model.Id</h1>
+
+@if (identity.CurrentUserId == Model.OwnerId)
+{
+    <a asp-action="Invite" asp-route-id="Model.Id">Add more pople</a>
+}
+
+<div class="row">
+    <div class="col-sm-4">
+        <ul>
+            @foreach (var user in Model.Participants)
+            {
+                <li>
+                    <a asp-area="Identity"
+                       asp-page="/Account/Profile"
+                       asp-route-id="user.Id">@user.UserName</a>
+                </li>
+            }
+        </ul>
+    </div>
+    <div class="col-sm-8">
+        <ul>
+            @foreach (var message in Model.Messages)
+            {
+                <li>
+                    <partial name="_Message" model="message" />
+                </li>
+            }
+        </ul>
+        <div>
+            <form asp-action="Sent" method="post">
+                <input type="hidden" name="roomid" value="@Model.Id" />
+                <input class="chat-input" name="text" value="" />
+                <button type="submit">
+                    Send
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

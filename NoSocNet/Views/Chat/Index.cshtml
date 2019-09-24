@@ -1,0 +1,17 @@
+﻿@model IEnumerable<UserViewModel>
+@{
+    ViewData["Title"] = "Users";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Users</h1>
+
+<ul>
+    @foreach (var user in Model)
+    {
+        <li>
+            @Html.ActionLink(user.UserName, "Index", "Account")
+            <a class="btn btn-primary" href="@Url.Action("Private","Chat",new { id=user.Id })">Chat</a>
+        </li>
+    }
+</ul>
