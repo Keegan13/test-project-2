@@ -16,6 +16,8 @@ namespace NoSocNet.Models
 
         public bool IsPrivate { get; set; }
 
+        public string RoomName { get; set; }
+
         public UserViewModel Owner { get; set; }
 
         public string OwnerId { get; set; }

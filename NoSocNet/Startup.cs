@@ -19,6 +19,7 @@ using NoSocNet.DAL.Context;
 using AutoMapper;
 using NoSocNet.BLL.Models;
 using NoSocNet.Models;
+using NoSocNet.Infrastructure.Services.Hub;
 
 namespace NoSocNet
 {
@@ -54,12 +55,18 @@ namespace NoSocNet
             services.AddHttpContextAccessor();
 
             services.AddScoped<DbContext, ApplicationDbContext>(factory => factory.GetRequiredService<ApplicationDbContext>());
+            services.AddSingleton<HubMessageSender>();
+            services.Configure<MessageObserverOptions>(options =>
+            {
+                options.MaxTimeOut = 1000 * 10;
+                options.RefreshInterval = 200;
+            });
+            services.AddTransient<MessageObserver>();
+            services.AddSingleton<IMessageSender<User, string>, HubMessageSender>();
 
             services.AddScoped<IIdentityService<User>, IdentityService>();
             services.AddScoped<IApplicationUserStore<User>, ApplicationUserStore>();
-            services.AddSingleton<IHubSender<User, string>, StaticHubSender>();
             services.AddScoped<IChatService<User, string>, ChatService>();
-
 
             services.AddDefaultIdentity<User>()
                 .AddDefaultUI(UIFramework.Bootstrap4)

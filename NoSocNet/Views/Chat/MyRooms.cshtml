@@ -1,0 +1,18 @@
+﻿@model IEnumerable<ChatRoomViewModel>
+@{
+    ViewData["Title"] = "MyRooms";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>MyRooms</h1>
+
+<ul>
+    @foreach (var item in Model)
+    {
+        <li>
+            <a class="btn" href="@Url.Action("Room",new { roomId=item.Id})">@item.Id</a>
+        </li>
+    }
+
+</ul>
+

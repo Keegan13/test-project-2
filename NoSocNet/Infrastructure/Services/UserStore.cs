@@ -21,9 +21,31 @@ namespace NoSocNet.Infrastructure.Services
         {
             this.userManager = userManager;
         }
-        public async Task<IList<User>> GetUsersAsync()
+
+        public Task<bool> Exists(string userId)
         {
-            return await this.userManager.Users.ToListAsync();
+            var doesExists = this.userManager.Users.AnyAsync(x => x.Id == userId);
+
+            return doesExists;
+        }
+
+        public IQueryable<User> Query()
+        {
+            return this.userManager.Users;
+        }
+
+        public async Task<IList<User>> GetUserListAsync()
+        {
+            var userList = await this.userManager.Users.ToListAsync();
+
+            return userList;
+        }
+
+        public async Task<User> GetByIdAsync(string userId)
+        {
+            var user = await this.userManager.FindByIdAsync(userId);
+
+            return user;
         }
     }
 }

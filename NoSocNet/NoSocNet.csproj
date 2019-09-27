@@ -5,22 +5,24 @@
     <UserSecretsId>aspnet-NoSocNet-123C14A8-ED37-4DB4-A7F4-7FC66DF08B4A</UserSecretsId>
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
   </PropertyGroup>
-
-
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="9.0.0" />
     <PackageReference Include="AutoMapper.Collection" Version="5.0.0" />
     <PackageReference Include="AutoMapper.EF6" Version="2.0.0" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="7.0.0" />
+    <PackageReference Include="jQuery.Ajax.Unobtrusive" Version="2.0.20710" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.jQuery.Unobtrusive.Ajax" Version="3.2.6" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.2.3" />
   </ItemGroup>
-
-
   <ItemGroup>
     <ProjectReference Include="..\NoSocNet.BLL\NoSocNet.BLL.csproj" />
     <ProjectReference Include="..\NoSocNet.DAL\NoSocNet.DAL.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Extensions\" />
+  </ItemGroup>
+  <ProjectExtensions><VisualStudio><UserProperties libman_1json__JsonSchema="http://json.schemastore.org/huskyrc" /></VisualStudio></ProjectExtensions>
 
 </Project>

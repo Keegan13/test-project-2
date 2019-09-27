@@ -1,13 +1,15 @@
 ﻿using NoSocNet.DAL.Models;
-using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace NoSocNet.BLL.Services
 {
     public interface IApplicationUserStore<TUser>
     {
-        Task<IList<TUser>> GetUsersAsync();
+        Task<User> GetByIdAsync(string userId);
+        Task<IList<TUser>> GetUserListAsync();
+        Task<bool> Exists(string userId);
+        IQueryable<User> Query();
     }
 }

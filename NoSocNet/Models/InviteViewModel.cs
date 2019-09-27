@@ -9,6 +9,8 @@ namespace NoSocNet.Models
     {
         public string RoomId { get; set; }
 
+        public string RoomName { get; set; }
+
         public IEnumerable<UserViewModel> Users { get; set; }
     }
 }

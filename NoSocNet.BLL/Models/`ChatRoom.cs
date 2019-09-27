@@ -10,6 +10,8 @@ namespace NoSocNet.BLL.Models
 
         public bool IsPrivate { get; set; }
 
+        public string RoomName { get; set; }
+
         public IEnumerable<TUser> Participants { get; set; }
 
         public string OwnerId { get; set; }

@@ -9,14 +9,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-
 namespace NoSocNet.Infrastructure.Services
 {
     public class ChatService : IChatService<User, string>, IRoomStore<User, string>
     {
         private readonly DbContext context;
         private readonly IIdentityService<User> identityService;
-        private readonly IHubSender<User, string> messageSender;
+        private readonly IMessageSender<User, string> messageSender;
+        private readonly IApplicationUserStore<User> userStore;
+
+        public ChatService(
+            DbContext context,
+            IIdentityService<User> identity,
+            IMessageSender<User, string> messageSender,
+            IApplicationUserStore<User> userStore
+            )
+        {
+            this.userStore = userStore;
+            this.context = context;
+            this.messageSender = messageSender;
+            this.identityService = identity;
+        }
 
         protected virtual IQueryable<MessageDto> MessagesQuery => context
             .Set<MessageDto>()
@@ -31,13 +44,6 @@ namespace NoSocNet.Infrastructure.Services
             .Include(x => x.Owner)
             .Include(x => x.Messages).ThenInclude(x => x.Sender)
             .Include(x => x.UserRooms).ThenInclude(x => x.User);
-
-        public ChatService(DbContext context, IIdentityService<User> identity, IHubSender<User, string> messageSender)
-        {
-            this.context = context;
-            this.messageSender = messageSender;
-            this.identityService = identity;
-        }
 
         public async Task<IList<Message<User, string>>> GetChatMessages(string chatRoomId)
         {
@@ -91,14 +97,26 @@ namespace NoSocNet.Infrastructure.Services
 
         public async Task<ChatRoom<User, string>> JoinPrivateAsync(string userId)
         {
-            string[] users = new[] { userId, identityService.CurrentUserId };
+            string currentUserId = identityService.CurrentUserId;
+
+            if (currentUserId == userId)
+            {
+                throw new ArgumentException("Same user error");
+            }
+
+            if (!await this.userStore.Exists(userId))
+            {
+                throw new ArgumentException("User does not exists");
+            }
 
             var privateRoom = await this.RoomsQuery
-                .FirstOrDefaultAsync(x => x.IsPrivate && x.UserRooms.Any(ur => users.Contains(ur.UserId)));
+                .FirstOrDefaultAsync(x => x.IsPrivate && x.UserRooms.All(ur => ur.UserId == userId || ur.UserId == currentUserId));
+
+
 
             if (privateRoom == null)
             {
-                ChatRoomDto newRoom = new ChatRoomDto { IsPrivate = true };
+                ChatRoomDto newRoom = new ChatRoomDto { IsPrivate = true, OwnerId = identityService.CurrentUserId };
 
                 newRoom.UserRooms = new List<UsersChatRoomsDto> {
                     new UsersChatRoomsDto {
@@ -112,9 +130,9 @@ namespace NoSocNet.Infrastructure.Services
                 };
 
                 this.context.Add(newRoom);
-
                 await this.context.SaveChangesAsync();
-
+                await this.context.Entry(newRoom).Reference(x => x.Owner).LoadAsync();
+                await this.context.Entry(newRoom).Collection(x => x.UserRooms).Query().Include(x => x.User).LoadAsync();
                 privateRoom = newRoom;
             }
 
@@ -175,38 +193,85 @@ namespace NoSocNet.Infrastructure.Services
                 Id = newMessage.Id
             };
 
-            await this.messageSender.PushMessage(message, roomId);
+
+            await this.messageSender.Push(message, message.ChatRoom.Participants.Select(x => x.Id));
 
             return message;
         }
 
         public async Task<ChatRoom<User, string>> InviteToRoom(string userId, string roomId)
         {
-            var room = await this.RoomsQuery
-                .FirstOrDefaultAsync(x => x.Id == roomId);
-
-            if (room != null && !room.IsPrivate)
+            if (String.IsNullOrEmpty(userId))
             {
-                return new ChatRoom<User, string>
-                {
-                    Id = room.Id,
-                    IsPrivate = room.IsPrivate,
-                    Owner = room.Owner,
-                    OwnerId = room.OwnerId,
-                    Messages = room.Messages.Select(x => new Message<User, string>
-                    {
-                        ChatRoomId = room.Id,
-                        Id = x.Id,
-                        SendDate = x.SendDate,
-                        SenderId = x.SenderId,
-                        Sender = x.Sender,
-                        Text = x.Text
-                    }),
-                    Participants = room.UserRooms.Select(x => x.User)
-                };
+                throw new ArgumentNullException(nameof(userId));
             }
 
-            return null;
+            if (String.IsNullOrEmpty(roomId))
+            {
+                throw new ArgumentNullException(nameof(roomId));
+            }
+
+            if (userId == identityService.CurrentUserId)
+            {
+                throw new ArgumentException("User cannot invite himself to chat room", nameof(userId));
+            }
+
+            User user = await this.userStore.GetByIdAsync(userId);
+
+            if (user == null)
+            {
+                throw new Exception($"Cannot find user with Id {userId}");
+            }
+
+            ChatRoomDto room = await this.RoomsQuery
+                .FirstOrDefaultAsync(x => x.Id == roomId);
+
+            if (room == null)
+            {
+                throw new Exception($"Cannot find room with Id {roomId}");
+            }
+
+            if (room.UserRooms.All(x => x.UserId != userId))
+            {
+                room.IsPrivate = false;
+                room.UserRooms.Add(new UsersChatRoomsDto
+                {
+                    User = user,
+                    ChatRoom = room
+                });
+
+                this.context.Update(room);
+
+                await this.context.SaveChangesAsync();
+            }
+
+            //ToDo: add BLL User Model
+            //Temp fix
+            foreach (var userRoom in room.UserRooms)
+            {
+                context.Entry(userRoom.User).State = EntityState.Detached;
+                context.Entry(userRoom).State = EntityState.Detached;
+            }
+            //end temp fix
+
+
+            return new ChatRoom<User, string>
+            {
+                Id = room.Id,
+                IsPrivate = room.IsPrivate,
+                Owner = room.Owner,
+                OwnerId = room.OwnerId,
+                Messages = room.Messages.Select(x => new Message<User, string>
+                {
+                    ChatRoomId = room.Id,
+                    Id = x.Id,
+                    SendDate = x.SendDate,
+                    SenderId = x.SenderId,
+                    Sender = x.Sender,
+                    Text = x.Text
+                }),
+                Participants = room.UserRooms.Select(x => x.User)
+            };
         }
 
         public async Task<ChatRoom<User, string>> GetRoomAsync(string roomId)
@@ -216,7 +281,7 @@ namespace NoSocNet.Infrastructure.Services
                 throw new ArgumentNullException(nameof(roomId));
             }
 
-            var item = await this.RoomsQuery.FirstOrDefaultAsync();
+            var item = await this.RoomsQuery.FirstOrDefaultAsync(x => x.Id == roomId);
 
 
             return item != null ? new ChatRoom<User, string>

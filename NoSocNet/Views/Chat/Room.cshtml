@@ -8,7 +8,7 @@
 
 @if (identity.CurrentUserId == Model.OwnerId)
 {
-    <a asp-action="Invite" asp-route-id="Model.Id">Add more pople</a>
+    <a asp-action="Invite" asp-route-id="@Model.Id">Add more pople</a>
 }
 
 <div class="row">
@@ -16,25 +16,25 @@
         <ul>
             @foreach (var user in Model.Participants)
             {
-                <li>
+                <li class="@(user.Id==identity.CurrentUserId?"current-user":"")">
                     <a asp-area="Identity"
                        asp-page="/Account/Profile"
-                       asp-route-id="user.Id">@user.UserName</a>
+                       asp-route-id="@user.Id">@user.UserName</a>
                 </li>
             }
         </ul>
     </div>
-    <div class="col-sm-8">
+    <div class="col-sm-8" id="messages-container">
         <ul>
             @foreach (var message in Model.Messages)
             {
                 <li>
-                    <partial name="_Message" model="message" />
+                    <partial name="_Message" model="@message" />
                 </li>
             }
         </ul>
         <div>
-            <form asp-action="Sent" method="post">
+            <form method="post" data-ajax="true" data-ajax-method="post" data-ajax-url="/Chat/Sent" data-ajax-complete="onComplete" asp-antiforgery="true">
                 <input type="hidden" name="roomid" value="@Model.Id" />
                 <input class="chat-input" name="text" value="" />
                 <button type="submit">
@@ -44,3 +44,43 @@
         </div>
     </div>
 </div>
+<div id="hidden"></div>
+
+@section Scripts{
+    <script>
+        function onComplete() {
+            $("form input[name=text]").val("")
+        }
+    </script>
+    <script src="~/lib/jquery/dist/jquery.unobtrusive-ajax.js"></script>
+    <script>
+        (function ($) {
+            const container = $("#messages-container ul");
+
+            let _appendMessage = function (msg) {
+                $(`<li><p class="message">${msg.text}` +
+                    '<span class="message-info"> <span class="message-date">' + msg.sendDate + '</span><span class="message-user">' + msg.senderId + '</span></span></p>')
+                    .appendTo(container);
+            };
+
+            let _onMessageHandler = function (msg) {
+                if (msg == null || msg == "" || msg == undefined) {
+                    return;
+                }
+                if (msg.length >= 0) {
+                    msg.forEach(function (item) {
+                        _appendMessage(item);
+                    })
+                }
+                _appendMessage(msg);
+            };
+
+            const config = {
+                host: "/Hub",
+                onMessage: _onMessageHandler
+            };
+            $("#hidden").hub(config);
+        })(jQuery)
+
+    </script>
+}

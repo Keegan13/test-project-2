@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using NoSocNet.BLL.Models;
 using NoSocNet.BLL.Services;
 using NoSocNet.DAL.Models;
 using NoSocNet.Models;
@@ -23,11 +25,12 @@ namespace NoSocNet.Controllers
         private readonly IIdentityService<User> identity;
 
         public ChatController(
-            IChatService<User, string> hub,
+            IChatService<User, string> chatService,
             IIdentityService<User> identity,
             UserManager<User> userManager,
             IApplicationUserStore<User> userStore,
             IMapper mapper
+            //ILogger logger
             )
         {
 
@@ -35,13 +38,13 @@ namespace NoSocNet.Controllers
             this.userStore = userStore;
             this.userManager = userManager;
             this.identity = identity;
-            this.chatService = hub;
+            this.chatService = chatService;
         }
 
 
         public async Task<IActionResult> Index()
         {
-            var model = (await this.userStore.GetUsersAsync())
+            var model = (await this.userStore.GetUserListAsync())
                 .Where(x => x.Id != identity.CurrentUserId)
                 .Select(x => mapper.Map<UserViewModel>(x));
 
@@ -56,26 +59,55 @@ namespace NoSocNet.Controllers
             return View(rooms);
         }
 
-        public async Task<IActionResult> Invite(string roomId)
+
+        public async Task<IActionResult> MyRooms()
         {
-            var users = await this.userStore.GetUsersAsync();
-            var chatRoom = await this.chatService.GetRoomAsync(roomId);
+            var rooms = await chatService.GetUserRooms(identity.CurrentUserId);
+
+            var model = rooms.Select(x => new ChatRoomViewModel
+            {
+                Id = x.Id,
+                RoomName = x.RoomName
+            });
+
+            return View(model);
+        }
+        public async Task<IActionResult> Invite(string id)
+        {
+            IList<User> users = await this.userStore.GetUserListAsync();
+            ChatRoom<User, string> chatRoom = await this.chatService.GetRoomAsync(id);
 
             if (users != null && chatRoom != null)
             {
-
-                return View(new InviteViewModel
+                var model = new InviteViewModel
                 {
-                    RoomId = roomId,
+                    RoomId = id,
                     Users = users
-                    .Where(x => chatRoom.Participants.Select(ps => ps.Id).Contains(x.Id))
-                    .Select(x => mapper.Map<UserViewModel>(x))
-                });
+                        .Where(x => !chatRoom.Participants.Select(ps => ps.Id).Contains(x.Id))
+                        .Select(x => mapper.Map<UserViewModel>(x))
+                };
+
+                return View(model);
             }
 
             return StatusCode(404);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Invite(string roomId, string[] people = null)
+        {
+            if (people != null && people.Count() > 0)
+            {
+                foreach (var userId in people)
+                {
+                    await this.chatService.InviteToRoom(userId, roomId);
+                }
+
+            }
+
+            return RedirectToAction("Room", new { roomId = roomId });
+        }
 
         [HttpGet]
         public async Task<IActionResult> Get(string id)
@@ -85,46 +117,66 @@ namespace NoSocNet.Controllers
             return View(chats);
         }
 
-        //public async Task<IActionResult> Index(UserFilterModel filter)
-        //{
-        //    var users = await userManager.Users.Skip(filter.PageSize * filter.Page).Take(filter.PageSize).ToListAsync();
-
-        //    return View(users);
-        //}
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Sent(string text, string roomId)
         {
+            if (await this.chatService.Push(this.identity.CurrentUserId, roomId, text) is Message<User, string> message)
+            {
+                return new JsonResult(new MessageViewModel
+                {
+                    ChatRoomId = message.ChatRoomId,
+                    Id = message.Id,
+                    SendDate = message.SendDate,
+                    SenderId = message.SenderId,
+                    Text = message.Text,
+                    SenderUserName = message.Sender.UserName
+                });
+            }
 
-            var message = await this.chatService.Push(this.identity.CurrentUserId, roomId, text);
-
-
-            return RedirectToAction("Room", new { roomId });
+            return NotFound(new { roomId });
         }
 
 
         public async Task<IActionResult> Private(string Id)
         {
-            var chatRoom = await this.chatService.JoinPrivateAsync(Id);
-
-            var model = new ChatRoomViewModel
+            try
             {
-                //ToDo: move to AutoMapper
-                Id = chatRoom.Id,
-                Messages = chatRoom.Messages.Select(x => mapper.Map<MessageViewModel>(x)).ToList(),
-                Participants = chatRoom.Participants.Select(x => mapper.Map<UserViewModel>(x)).ToList(),
-                IsPrivate = chatRoom.IsPrivate
-            };
+                var chatRoom = await this.chatService.JoinPrivateAsync(Id);
 
-            return View("Room", model);
+                var model = new ChatRoomViewModel
+                {
+                    //ToDo: move to AutoMapper
+                    Id = chatRoom.Id,
+                    Messages = chatRoom.Messages.Select(x => mapper.Map<MessageViewModel>(x)).ToList(),
+                    Participants = chatRoom.Participants.Select(x => mapper.Map<UserViewModel>(x)).ToList(),
+                    IsPrivate = chatRoom.IsPrivate,
+                    OwnerId = identity.CurrentUserId
+                };
+
+                return View("Room", model);
+            }
+            catch (Exception ex)
+            {
+                //ToDo log error
+                //logger.Error("{0}",ex.ToString());
+                return StatusCode(404);
+            }
         }
         public async Task<IActionResult> Join(string userid, string roomId)
         {
-            var chatRoom = await this.chatService.InviteToRoom(userid, roomId);
+            try
+            {
+                var chatRoom = await this.chatService.InviteToRoom(userid, roomId);
 
 
-
-
-            return RedirectToAction("Room", new { id = chatRoom });
+                return RedirectToAction("Room", new { id = chatRoom });
+            }
+            catch (Exception ex)
+            {
+                //log error
+                throw ex;
+            }
         }
 
 

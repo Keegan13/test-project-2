@@ -14,6 +14,8 @@ namespace NoSocNet.DAL.Models
 
         public string Id { get; set; }
 
+        public string RoomName { get; set; }
+
         public bool IsPrivate { get; set; }
 
         public User Owner { get; set; }
