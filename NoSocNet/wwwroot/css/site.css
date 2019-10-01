@@ -65,5 +65,25 @@ body {
 
 
 #background-worker {
-    width:100%;
+    width: 100%;
+}
+
+.modal {
+    max-height: 65%;
+}
+
+#hidden {
+    display: none;
+}
+
+.updated {
+    background-color: red;
+}
+
+#chat-tabs .nav-item {
+    display: block;
+    width: 220px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }

@@ -1,6 +1,4 @@
-﻿
-
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using NoSocNet.BLL.Services;
 using NoSocNet.DAL.Models;

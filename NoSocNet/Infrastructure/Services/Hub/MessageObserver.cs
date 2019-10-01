@@ -1,87 +1,49 @@
-﻿using Microsoft.Extensions.Options;
-using NoSocNet.BLL.Services;
-using NoSocNet.DAL.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NoSocNet.Infrastructure.Services.Hub
 {
-
-    public class MessageObserverOptions
-    {
-        /// <summary>
-        /// Milliseconds
-        /// </summary>
-        public int MaxTimeOut { get; set; }
-
-        public int RefreshInterval { get; set; }
-    }
     public class MessageObserver
     {
-        public readonly IIdentityService<User> identity;
         private readonly HubMessageSender hub;
+        private readonly ManualResetEvent notificator;
 
-        #region Options
-        protected virtual int MaxTimeOut { get; set; } = 1000 * 60 * 25;
-        protected virtual int RefreshInterval { get; set; } = 1000;
-        #endregion
-
+        public Guid ConnectionId { get; private set; }
         private Object message = null;
+        private bool receivedMessage = false;
 
         public MessageObserver(
-            IOptions<MessageObserverOptions> options,
-            IMessageSender<User, string> hub,
-            IIdentityService<User> identity
+            HubMessageSender hub
             )
         {
-            this.identity = identity;
-            this.hub = hub as HubMessageSender;
-            this.ApplyOptions(options.Value);
+            this.hub = hub;
+            this.notificator = hub.GetNotificator();
         }
 
-        private void ApplyOptions(MessageObserverOptions options)
+        public Object GetMessageOrDefaultAsync(Guid connectionId, int? timeOut = null)
         {
-            if (options == null)
-            {
-                return;
-            }
+            this.ConnectionId = connectionId;
+            DateTime globTimeout = timeOut.HasValue ? DateTime.Now.AddMilliseconds(timeOut.Value) : DateTime.Now.AddDays(1);
+            var handler = new EventHandler<HubNotificationArguments>(onMessageHandler);
 
-            if (options.MaxTimeOut > 0)
-            {
-                this.MaxTimeOut = options.MaxTimeOut;
-            }
-
-            if (options.RefreshInterval > 0)
-            {
-                this.RefreshInterval = options.RefreshInterval;
-            }
-        }
-
-        public async Task<Object> GetMessageOrDefaultAsync(Guid connectionId, int? timeOut = null)
-        {
-            DateTime endDate = DateTime.Now.AddMilliseconds(timeOut.HasValue ? timeOut.Value : this.MaxTimeOut);
-
-            if (!(this.hub.Connect(connectionId) is Connection connection))
-            {
-                return null;
-            }
-
-            var handler = new EventHandler<MessageEventArguments>(onMessageHandler);
-            connection.onMessage += handler;
+            this.hub.Subscribe(this.ConnectionId, handler);
 
             try
             {
-                do
+                while (!this.receivedMessage && DateTime.Now < globTimeout)
                 {
-                    if (this.message != null)
+                    if (timeOut.HasValue)
                     {
-                        return this.message;
+                        notificator.WaitOne(timeOut.Value);
                     }
-                    await Task.Delay(1000);
+                    else
+                    {
+                        notificator.WaitOne();
+                    }
                 }
-                while (DateTime.Now < endDate);
             }
             catch (Exception e)
             {
@@ -89,15 +51,19 @@ namespace NoSocNet.Infrastructure.Services.Hub
             }
             finally
             {
-                connection.onMessage -= handler;
+                this.hub.Unsubscribe(handler);
             }
 
             return this.message;
         }
 
-        private void onMessageHandler(object sender, MessageEventArguments e)
+        private void onMessageHandler(object sender, HubNotificationArguments e)
         {
-            this.message = e.Message;
+            if (e.Connections.Contains(this.ConnectionId))
+            {
+                this.message = e.Message;
+                this.receivedMessage = true;
+            }
         }
     }
 }

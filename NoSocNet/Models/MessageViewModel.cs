@@ -13,6 +13,7 @@ namespace NoSocNet.Models
         public string Text { get; set; }
 
         public string ChatRoomId { get; set; }
+
         public DateTime SendDate { get; set; }
 
         public string SenderId { get; set; }

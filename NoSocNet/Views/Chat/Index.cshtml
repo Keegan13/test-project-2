@@ -1,17 +1,92 @@
-﻿@model IEnumerable<UserViewModel>
+﻿@model IEnumerable<ChatRoomViewModel>
 @{
-    ViewData["Title"] = "Users";
+    ViewData["Title"] = "MyRooms";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    string selectedId = Model.FirstOrDefault()?.Id ?? "";
+    ViewBag.SelectedId = selectedId;
+
 }
 
-<h1>Users</h1>
+<h1>MyRooms</h1>
 
-<ul>
-    @foreach (var user in Model)
-    {
-        <li>
-            @Html.ActionLink(user.UserName, "Index", "Account")
-            <a class="btn btn-primary" href="@Url.Action("Private","Chat",new { id=user.Id })">Chat</a>
-        </li>
-    }
-</ul>
+<section class="container py-4">
+    <div class="row">
+        <div class="col-md-4">
+            <ul id="chat-tabs" class="nav nav-pills">
+                @foreach (var item in Model)
+                {
+                    <li>
+                        <a href="" data-target="#chat@(item.Id)" data-toggle="tab"
+                           class="nav-item @(item.Id==selectedId?"active":"")">
+                            @item.RoomName
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+        <div calss="col-md-8">
+            <div id="tabsJustifiedContent" class="tab-content">
+                @foreach (var chatRoom in Model)
+                {
+                    <div id="chat@(chatRoom.Id)" class="tab-pane fade @(chatRoom.Id==selectedId?"active show":"")" aria-labelledby="#chat-tabs">
+                        <partial name="_chatTab" model="@chatRoom" />
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+<div id="hidden"></div>
+
+@section Scripts{
+    <script>
+        function onComplete() {
+            $("form input[name=text]").val("")
+        }
+    </script>
+    <script>
+        (function ($) {
+
+            let _showHasNewMessages = function (id) {
+                var element = $(`a[data-target='#chat${id}']`);
+                if (element && !element.hasClass("active")) {
+                    element.addClass("updated");
+                }
+            };
+
+            let _appendMessage = function (msg) {
+                msg.sendDate = moment(new Date(msg.sendDate)).format("YYYY-MM-DD hh:mm");
+                const container = $("#chat" + msg.chatRoomId + " ul.messages");
+                $(`<li><p class="message">${msg.text}` +
+                    '<span class="message-info"> <span class="message-date">' + msg.sendDate + '</span><span class="message-user">' + msg.senderUserName + '</span></span></p>')
+                    .appendTo(container);
+
+                $('a[data-toggle="tab"]').on('click', function (e) {
+                    $(e.target).removeClass("updated");
+                });
+            };
+
+            let _onMessageHandler = function (msg) {
+                if (msg == null || msg == "" || msg == undefined) {
+                    return;
+                }
+                if (msg.length >= 0) {
+                    msg.forEach(function (item) {
+                        _appendMessage(item);
+                    })
+                }
+                _appendMessage(msg);
+                _showHasNewMessages(msg.chatRoomId);
+            };
+
+            const config = {
+                host: "/Hub",
+                onMessage: _onMessageHandler,
+                mode: "null"
+            };
+            $("#hidden").hub(config);
+        })(jQuery)
+
+    </script>
+}

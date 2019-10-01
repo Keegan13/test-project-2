@@ -23,6 +23,6 @@
   <ItemGroup>
     <Folder Include="Extensions\" />
   </ItemGroup>
-  <ProjectExtensions><VisualStudio><UserProperties libman_1json__JsonSchema="http://json.schemastore.org/huskyrc" /></VisualStudio></ProjectExtensions>
+  <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 
 </Project>

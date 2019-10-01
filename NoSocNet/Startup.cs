@@ -56,13 +56,8 @@ namespace NoSocNet
 
             services.AddScoped<DbContext, ApplicationDbContext>(factory => factory.GetRequiredService<ApplicationDbContext>());
             services.AddSingleton<HubMessageSender>();
-            services.Configure<MessageObserverOptions>(options =>
-            {
-                options.MaxTimeOut = 1000 * 10;
-                options.RefreshInterval = 200;
-            });
             services.AddTransient<MessageObserver>();
-            services.AddSingleton<IMessageSender<User, string>, HubMessageSender>();
+            services.AddSingleton<IMessageSender<User, string>>(factory => factory.GetRequiredService<HubMessageSender>() as IMessageSender<User, string>);
 
             services.AddScoped<IIdentityService<User>, IdentityService>();
             services.AddScoped<IApplicationUserStore<User>, ApplicationUserStore>();

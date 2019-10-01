@@ -1,10 +1,11 @@
 ﻿@model ChatRoomViewModel
 @{
-    ViewData["Title"] = $"Chat room {Model.Id}";
+    bool isForeverFrame = ViewBag.isForeverFrame ?? false;
+    ViewData["Title"] = $"Chat room {Model.RoomName}";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @inject IIdentityService<User> identity
-<h1>Room @Model.Id</h1>
+<h1>@Model.RoomName</h1>
 
 @if (identity.CurrentUserId == Model.OwnerId)
 {
@@ -52,7 +53,6 @@
             $("form input[name=text]").val("")
         }
     </script>
-    <script src="~/lib/jquery/dist/jquery.unobtrusive-ajax.js"></script>
     <script>
         (function ($) {
             const container = $("#messages-container ul");
@@ -77,7 +77,8 @@
 
             const config = {
                 host: "/Hub",
-                onMessage: _onMessageHandler
+                onMessage: _onMessageHandler,
+                mode:@Html.Raw(isForeverFrame?"'ForeverFrame'":"'null'")
             };
             $("#hidden").hub(config);
         })(jQuery)

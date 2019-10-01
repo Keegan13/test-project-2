@@ -72,7 +72,10 @@ namespace NoSocNet.Infrastructure.Services
 
         public async Task<IList<ChatRoom<User, string>>> GetUserRooms(string userId)
         {
-            return await this.RoomsQuery
+            //ToDo: temp solution
+            DateTime reallyOld = DateTime.Parse("1900-01-01");
+
+            return (await this.RoomsQuery
                 .Where(x => x.UserRooms.Any(u => u.UserId == userId))
                 .Select(x => new ChatRoom<User, string>
                 {
@@ -81,6 +84,7 @@ namespace NoSocNet.Infrastructure.Services
                     IsPrivate = x.IsPrivate,
                     OwnerId = x.OwnerId,
                     Owner = x.Owner,
+                    RoomName = x.RoomName,
                     Participants = x.UserRooms.Select(bind => bind.User).ToList(),
                     Messages = x.Messages.Select(msg => new Message<User, string>()
                     {
@@ -92,7 +96,11 @@ namespace NoSocNet.Infrastructure.Services
                         ChatRoom = null,
                         Text = msg.Text
                     })
-                }).ToListAsync();
+                })
+                .ToListAsync())
+                .OrderBy(x => !x.IsPrivate)
+                .ThenByDescending(x => x.Messages.LastOrDefault()?.SendDate ?? reallyOld)
+                .ToList();
         }
 
         public async Task<ChatRoom<User, string>> JoinPrivateAsync(string userId)
@@ -252,6 +260,9 @@ namespace NoSocNet.Infrastructure.Services
                 context.Entry(userRoom.User).State = EntityState.Detached;
                 context.Entry(userRoom).State = EntityState.Detached;
             }
+
+            context.Entry(room).State = EntityState.Detached;
+
             //end temp fix
 
 

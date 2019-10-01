@@ -30,7 +30,7 @@ namespace NoSocNet.Infrastructure.Services
 
                 return Task.FromResult(true);
             }
-            catch
+            catch (Exception ex)
             {
                 return Task.FromResult(false);
             }

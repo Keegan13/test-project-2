@@ -38,24 +38,45 @@ namespace NoSocNet.Controllers
 
         [HttpGet]
         [ActionName("Index")]
-        public IActionResult Get()
+        public async Task<IActionResult> Get(Mode? mode = null)
         {
-            var connection = this.hub.Connect(this.identity.CurrentUserId);
-            return PartialView("_HiddenFrame", new HubResponseViewModel
+            var model = new HubResponseViewModel();
+
+            if (HttpContext.Request.Cookies.TryGetValue("connectionId", out string existingConnection) && Guid.TryParse(existingConnection, out Guid connection) && this.hub.Subscribe(connection, null))
             {
-                ConnectionId = connection.ConnectionId.ToString(),
+                model.ConnectionId = existingConnection;
+            }
+            else
+            {
+                model.ConnectionId = this.hub.Connect(this.identity.CurrentUserId).ToString();
+            }
+
+            HttpContext.Response.Cookies.Append("connectionId", model.ConnectionId.ToString(), new Microsoft.AspNetCore.Http.CookieOptions
+            {
+                Expires = DateTime.Now.AddDays(1)
             });
+
+            //if (mode == Mode.ForeverFrame)
+            //{
+            //    return await this.Put(model.ConnectionId.ToString());
+            //}
+
+            return PartialView("_HiddenFrame", model);
         }
 
 
         //long pulling
         [HttpPost]
         [ActionName("Index")]
-        public async Task<IActionResult> Post(string connectionId)
+        public IActionResult Post(string connectionId)
         {
-            var message = await this.observer.GetMessageOrDefaultAsync(Guid.Parse(connectionId), 1000 * 60);
+            if (!String.IsNullOrEmpty(connectionId))
+            {
+                var message = this.observer.GetMessageOrDefaultAsync(Guid.Parse(connectionId), 1000 * 60);
 
-            return new JsonResult(message);
+                return new JsonResult(message);
+            }
+            return null;
         }
 
 
@@ -72,17 +93,19 @@ namespace NoSocNet.Controllers
         public async Task<IActionResult> Put(string connecntionId)
         {
             var body = HttpContext.Response.Body;
+            HttpContext.Response.ContentType = "text/html";
 
             using (var writer = new StreamWriter(body))
             {
+                await writer.WriteAsync("<script>function callback(message) {parent._onMessageReceived(message);}</script>");
+                await writer.FlushAsync();
                 while (true)
                 {
-                    var message = await this.observer.GetMessageOrDefaultAsync(Guid.Parse(connecntionId));
+                    var message = this.observer.GetMessageOrDefaultAsync(Guid.Parse(connecntionId));
                     if (message != null)
                     {
-
                         await writer.WriteAsync(WrapMessageInScript(message).Value);
-                        writer.Flush();
+                        await writer.FlushAsync();
                     }
                 }
             }

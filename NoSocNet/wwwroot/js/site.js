@@ -12,6 +12,7 @@
                 console.log(message);
                 console.log("Define onMessageHandler to receive notifications");
             },
+            mode: "LongPooling",
             host: null
         }, config);
 
@@ -28,13 +29,50 @@
             }
         };
 
-
         window._onMessageReceived = function (message) {
             _onMessageHandler(message);
         };
 
         let _url = `${config.host}?callback=_responseHandler`;
+
+        if (_config.mode == "ForeverFrame") {
+            _url += `&mode=foreverFrame`;
+        }
+
         var frame = $(`<iframe name="background-worker" id="background-worker" src="${_url}"></iframe>`)
             .appendTo(this);
     };
-})(jQuery)
+})(jQuery);
+
+(function () {
+    $('a[data-toggle="tab"]').on('click', function (e) {
+        $(e.target).removeClass("updated");
+    });
+})();
+
+
+function partialModal(data) {
+    //when partial view returned to modal
+    $("#shared-modal").html(data).modal("show");
+}
+
+function onAjaxError() {
+
+}
+function onComplete(data) {
+    console.log("Implement onComplete")
+}
+function onNewParticipants(data) {
+    //when new users join chat
+
+}
+
+function clearModal() {
+    console.log("Closing modal");
+    $.modal.close();
+    $('#shared-modal').html('');
+}
+
+function onNewParticipants(content) {
+    console.log(content);
+}
