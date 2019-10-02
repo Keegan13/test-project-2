@@ -1,8 +1,8 @@
 ﻿@model InviteViewModel
 @{
-    String roomName = String.IsNullOrEmpty(Model.RoomName) ? Model.RoomId : Model.RoomName;
     Layout = null;
 }
+
 
 @if (Model.Users.Count() == 0)
 {
@@ -10,8 +10,7 @@
 }
 else
 {
-
-    <h2>Invite people to room @roomName</h2>
+    <h4>Invite people to room @Model.RoomName</h4>
     <form method="post" data-ajax="true" data-ajax-method="post" data-ajax-url="/Chat/Invite" data-ajax-update="#chat@(Model.RoomId)" data-ajax-mode="replaceWith" data-ajax-complete="clearModal" asp-antiforgery="true">
         <input hidden="hidden" name="roomId" value="@Model.RoomId" />
         <div class="form-group">

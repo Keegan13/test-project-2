@@ -2,34 +2,25 @@
 @{
     Layout = null;
 }
-
 @inject IIdentityService<User> identity
 
-<div class="chat-tab-body">
-    <a data-ajax="true" class="btn btn-primary" data-ajax-success="partialModal" data-ajax-method="GET" data-ajax-url="@Url.Action("Invite","chat",new { id = Model.Id })">Invite</a>
-    <ul class="messages">
-        @foreach (var message in Model.Messages)
-        {
-            <li>
-                <partial name="_Message" model="@message" />
-            </li>
-        }
-    </ul>
-    <div>
-        <form method="post" data-ajax="true" data-ajax-method="post" data-ajax-url="/Chat/Sent" data-ajax-complete="onComplete" asp-antiforgery="true">
-            <input type="hidden" name="roomid" value="@Model.Id" />
-            <input class="chat-input" name="text" value="" />
-            <button type="submit">
-                Send
-            </button>
-        </form>
-    </div>
-
-    <h2>Users</h2>
-    <ul>
-        @foreach (var user in Model.Participants)
-        {
-            <li class=" @(user.Id == identity.CurrentUserId?"current":"")">@user.UserName</li>
-        }
-    </ul>
+<div class="mb-3 mt-2">
+    <h4 class="chat-heading d-inline-block align-middle">@Model.RoomName</h4>
+    <a data-ajax="true" class="btn btn-primary btn-invite d-inline-block align-middle float-right" data-ajax-success="partialModal" data-ajax-method="GET" data-ajax-url="@Url.Action("Invite","chat",new { id = Model.Id })"><i class="fa fa-plus-circle"></i></a>
 </div>
+<div class="chat-messages">
+    @foreach (var message in Model.Messages)
+    {
+        <partial name="_Message" model="@message" />
+    }
+</div>
+
+<form method="post" data-ajax="true" data-ajax-method="post" data-ajax-url="/Chat/Sent" data-ajax-success="onMessageSent" asp-antiforgery="true" class="mt-2">
+    <div class="input-group">
+        <input type="hidden" name="roomid" value="@Model.Id" />
+        <textarea class="form-control" name="text" value="" placeholder="Type a message" required></textarea>
+        <button type="submit" class="btn">
+            <i class="fa fa-telegram" style="font-size:36px;color:cornflowerblue"></i>
+        </button>
+    </div>
+</form>

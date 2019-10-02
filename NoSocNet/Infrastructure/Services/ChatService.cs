@@ -300,6 +300,7 @@ namespace NoSocNet.Infrastructure.Services
                 Id = item.Id,
                 IsPrivate = item.IsPrivate,
                 Owner = item.Owner,
+                RoomName = item.RoomName,
                 OwnerId = item.OwnerId,
                 Messages = item.Messages.Select(x => new Message<User, string>
                 {

@@ -1,41 +1,39 @@
 ﻿@model IEnumerable<ChatRoomViewModel>
 @{
-    ViewData["Title"] = "MyRooms";
+    ViewData["Title"] = "My chats";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    string selectedId = Model.FirstOrDefault()?.Id ?? "";
-    ViewBag.SelectedId = selectedId;
 
+    string selectedId = ViewBag.SelectedId as string;
+    if (String.IsNullOrEmpty(selectedId))
+    {
+        selectedId = Model.FirstOrDefault()?.Id ?? "";
+        ViewBag.SelectedId = selectedId;
+    }   
 }
+@inject IIdentityService<User> identity;
 
-<h1>MyRooms</h1>
-
-<section class="container py-4">
-    <div class="row">
-        <div class="col-md-4">
-            <ul id="chat-tabs" class="nav nav-pills">
+<div class="row">
+    <div class="col-md-4">
+        <nav class="chats-tabs">
+            <div class="nav nav-tabs nav-fill" id="nav-tab" role="tablist">
                 @foreach (var item in Model)
                 {
-                    <li>
-                        <a href="" data-target="#chat@(item.Id)" data-toggle="tab"
-                           class="nav-item @(item.Id==selectedId?"active":"")">
-                            @item.RoomName
-                        </a>
-                    </li>
-                }
-            </ul>
-        </div>
-        <div calss="col-md-8">
-            <div id="tabsJustifiedContent" class="tab-content">
-                @foreach (var chatRoom in Model)
-                {
-                    <div id="chat@(chatRoom.Id)" class="tab-pane fade @(chatRoom.Id==selectedId?"active show":"")" aria-labelledby="#chat-tabs">
-                        <partial name="_chatTab" model="@chatRoom" />
-                    </div>
+                    <a class="nav-item nav-link d-block w-100 chat-tab-link @(item.Id==selectedId?"active":"")" id="chat@(item.Id)-tab" data-toggle="tab" href="#chat@(item.Id)" role="tab" aria-controls="chat@(item.Id)" aria-selected="@(item.Id==selectedId?"true":"false")">@item.RoomName</a>
                 }
             </div>
+        </nav>
+    </div>
+    <div class="col-md-8">
+        <div class="tab-content" id="nav-tabContent">
+            @foreach (var item in Model)
+            {
+                <div class="tab-pane fade @(item.Id==selectedId?"show active":"")" id="chat@(item.Id)" role="tabpanel" aria-labelledby="chat@(item.Id)-tab">
+                    <partial name="_chatTab" model="@item" />
+                </div>
+            }
         </div>
     </div>
-</section>
+</div>
 
 <div id="hidden"></div>
 
@@ -49,7 +47,7 @@
         (function ($) {
 
             let _showHasNewMessages = function (id) {
-                var element = $(`a[data-target='#chat${id}']`);
+                var element = $(`a#chat${id}-tab`);
                 if (element && !element.hasClass("active")) {
                     element.addClass("updated");
                 }
@@ -57,14 +55,12 @@
 
             let _appendMessage = function (msg) {
                 msg.sendDate = moment(new Date(msg.sendDate)).format("YYYY-MM-DD hh:mm");
-                const container = $("#chat" + msg.chatRoomId + " ul.messages");
-                $(`<li><p class="message">${msg.text}` +
-                    '<span class="message-info"> <span class="message-date">' + msg.sendDate + '</span><span class="message-user">' + msg.senderUserName + '</span></span></p>')
-                    .appendTo(container);
+                const container = $("#chat" + msg.chatRoomId + " .chat-messages");
+                let senderCls = $.currentUserId === msg.senderId ? 'outcomming' : 'incomming';
 
-                $('a[data-toggle="tab"]').on('click', function (e) {
-                    $(e.target).removeClass("updated");
-                });
+                $(`<div class="alert alert-primary ${senderCls}" role="alert"><p>${msg.text}</p><hr><p class="message-info"><span class="message-date">${msg.sendDate}</span> ${msg.senderUserName}</p></div>`).appendTo(container);
+
+                container.scrollTop(100000);
             };
 
             let _onMessageHandler = function (msg) {
@@ -86,6 +82,7 @@
                 mode: "null"
             };
             $("#hidden").hub(config);
+            $.currentUserId="@identity.CurrentUserId";
         })(jQuery)
 
     </script>

@@ -1,0 +1,16 @@
+﻿@model IEnumerable<UserViewModel>
+@{
+
+    ViewData["Title"] = "Users";
+}
+<h2>Chose with who you want to talk</h2>
+<div class="row">
+    <div class="offset-4 col-md-4">
+        <ul class="user-list">
+            @foreach (var user in Model)
+            {
+                <li class="user-list-item">@user.UserName <a class="btn btn-primary btn-chat float-right" asp-action="Private" asp-route-id="@user.Id">Talk</a></li>
+            }
+        </ul>
+    </div>
+</div>

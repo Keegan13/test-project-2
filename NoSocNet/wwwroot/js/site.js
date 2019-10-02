@@ -47,6 +47,10 @@
 (function () {
     $('a[data-toggle="tab"]').on('click', function (e) {
         $(e.target).removeClass("updated");
+        let tabId = $(e.target).attr("aria-controls");
+        setTimeout(() => {
+            $(`#${tabId}`).find(".chat-messages").scrollTop(10000);
+        }, 500);
     });
 })();
 
@@ -65,6 +69,10 @@ function onComplete(data) {
 function onNewParticipants(data) {
     //when new users join chat
 
+}
+function onMessageSent(data) {
+    let roomid = data.chatRoomId;
+    $(`#chat${roomid} form textarea`).val("");
 }
 
 function clearModal() {

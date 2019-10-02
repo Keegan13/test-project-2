@@ -1,89 +1,143 @@
 ﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
 for details on configuring this project to bundle and minify static web assets. */
-
 a.navbar-brand {
-    white-space: normal;
-    text-align: center;
-    word-break: break-all;
-}
+  white-space: normal;
+  text-align: center;
+  word-break: break-all; }
 
 /* Sticky footer styles
 -------------------------------------------------- */
 html {
-    font-size: 14px;
-}
+  font-size: 14px; }
 
 @media (min-width: 768px) {
-    html {
-        font-size: 16px;
-    }
-}
+  html {
+    font-size: 16px; } }
 
 .border-top {
-    border-top: 1px solid #e5e5e5;
-}
+  border-top: 1px solid #e5e5e5; }
 
 .border-bottom {
-    border-bottom: 1px solid #e5e5e5;
-}
+  border-bottom: 1px solid #e5e5e5; }
 
 .box-shadow {
-    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
-}
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05); }
 
 button.accept-policy {
-    font-size: 1rem;
-    line-height: inherit;
-}
+  font-size: 1rem;
+  line-height: inherit; }
 
 /* Sticky footer styles
 -------------------------------------------------- */
 html {
-    position: relative;
-    min-height: 100%;
-}
+  position: relative;
+  min-height: 100%; }
 
 body {
-    /* Margin bottom by footer height */
-    margin-bottom: 60px;
-}
+  /* Margin bottom by footer height */
+  margin-bottom: 60px; }
+  body p {
+    margin-bottom: 0; }
 
 .footer {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    white-space: nowrap;
-    /* Set the fixed height of the footer here */
-    height: 60px;
-    line-height: 60px; /* Vertically center the text there */
-}
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  white-space: nowrap;
+  /* Set the fixed height of the footer here */
+  height: 60px;
+  line-height: 60px;
+  /* Vertically center the text there */ }
 
-.current-user {
-    color: darkgreen;
-    font-size: larger;
-}
+.container {
+  max-width: 1170px;
+  margin: auto; }
 
+img {
+  max-width: 100%; }
 
-#background-worker {
-    width: 100%;
-}
+.chat-heading {
+  width: 80%;
+  text-overflow: ellipsis;
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap; }
 
 .modal {
-    max-height: 65%;
-}
+  overflow: visible;
+  max-height: 66%; }
 
 #hidden {
-    display: none;
-}
+  display: none; }
+
+.chat-tab-link {
+  text-overflow: ellipsis;
+  text-align: left !important;
+  overflow: hidden;
+  white-space: nowrap; }
 
 .updated {
-    background-color: red;
-}
-
-#chat-tabs .nav-item {
+  position: relative; }
+  .updated:after {
+    content: '';
     display: block;
-    width: 220px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #0062cc;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%); }
+
+.btn-invite {
+  background-color: cornflowerblue;
+  border: none; }
+  .btn-invite i {
+    color: white;
+    font-size: 24px; }
+
+.chats-tabs {
+  height: 708px;
+  overflow-y: auto; }
+
+.chat-messages {
+  height: 600px;
+  overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; }
+  .chat-messages .message-info {
+    font-size: 14px;
+    text-align: right; }
+  .chat-messages .alert {
+    width: 80%; }
+  .chat-messages hr {
+    padding: 0px;
+    margin: 0px;
+    border-top-color: inherit; }
+  .chat-messages .incomming {
+    align-self: flex-start; }
+  .chat-messages .outcomming {
+    align-self: flex-end;
+    color: #856404;
+    background-color: #fff3cd;
+    border-color: #ffeeba; }
+  .chat-messages span.message-date {
+    font-weight: 100;
+    font-size: 12px; }
+
+@media (max-width: 768px) {
+  .chats-tabs {
+    height: 100%; } }
+
+.btn-chat {
+  background-color: cornflowerblue;
+  border: none; }
+
+.user-list {
+  list-style: none; }
+  .user-list .user-list-item {
+    height: 40px; }
+    .user-list .user-list-item:hover {
+      background-color: blanchedalmond; }
