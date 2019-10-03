@@ -8,14 +8,16 @@ namespace NoSocNet.BLL.Services
     {
         Task<Message<TUser, TKey>> Push(string userId, string roomId, string Message);
 
-        Task<IList<Message<TUser, TKey>>> GetChatMessages(string chatRoom);
+        Task<IList<ChatRoom<TUser, TKey>>> GetRoomsByUserAsync(TKey userId);
 
-        Task<IList<ChatRoom<TUser, TKey>>> GetUserRooms(TKey userId);
+        Task<ChatRoom<TUser, TKey>> GetPrivateRoomAsync(TKey userId);
 
-        Task<ChatRoom<TUser, TKey>> JoinPrivateAsync(TKey userId);
-
-        Task<ChatRoom<TUser, TKey>> InviteToRoom(TKey userId, string roomId);
+        Task<ChatRoom<TUser, TKey>> InviteToRoomAsync(TKey userId, string roomId);
 
         Task<ChatRoom<TUser, TKey>> GetRoomAsync(string roomId);
+
+        Task SetReadByUserAsync(TKey userId, string roomId, int? tillMessageId = null);
+
+        Task<List<TUser>> NONAMEFORNOW(TKey userId);
     }
 }

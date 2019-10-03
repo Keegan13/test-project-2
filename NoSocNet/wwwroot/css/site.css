@@ -75,6 +75,8 @@ img {
   text-align: left !important;
   overflow: hidden;
   white-space: nowrap; }
+  .chat-tab-link.private {
+    color: red; }
 
 .updated {
   position: relative; }
@@ -99,7 +101,15 @@ img {
 
 .chats-tabs {
   height: 708px;
+  width: 100%;
   overflow-y: auto; }
+  .chats-tabs .btn-invite {
+    font-weight: 600;
+    text-transform: uppercase;
+    color: white;
+    /* padding: 0px; */
+    /* margin: 0px; */
+    top: 32px; }
 
 .chat-messages {
   height: 600px;
@@ -136,7 +146,10 @@ img {
   border: none; }
 
 .user-list {
-  list-style: none; }
+  list-style: none;
+  overflow-y: auto;
+  max-height: 494px;
+  padding: 0px; }
   .user-list .user-list-item {
     height: 40px; }
     .user-list .user-list-item:hover {

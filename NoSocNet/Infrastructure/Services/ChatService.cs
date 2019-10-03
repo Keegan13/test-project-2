@@ -8,6 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ExpressionBuilder;
+using ExpressionBuilder.Generics;
+using ExpressionBuilder.Operations;
 
 namespace NoSocNet.Infrastructure.Services
 {
@@ -45,48 +48,31 @@ namespace NoSocNet.Infrastructure.Services
             .Include(x => x.Messages).ThenInclude(x => x.Sender)
             .Include(x => x.UserRooms).ThenInclude(x => x.User);
 
-        public async Task<IList<Message<User, string>>> GetChatMessages(string chatRoomId)
-        {
-            return await MessagesQuery
-                .Where(x => x.ChatRoomId == chatRoomId)
-                .OrderByDescending(x => x.SendDate)
-                .Select(x => new Message<User, string>
-                {
-                    //ToDo: use AutoMapper
-                    Id = x.Id,
-                    ChatRoomId = x.ChatRoomId,
-                    SendDate = x.SendDate,
-                    SenderId = x.SenderId,
-                    Text = x.Text,
-
-                    Sender = x.Sender,
-                    ChatRoom = new ChatRoom<User, string>
-                    {
-                        IsPrivate = x.ChatRoom.IsPrivate,
-                        OwnerId = x.ChatRoom.OwnerId,
-                        Id = x.ChatRoom.Id,
-                        Participants = x.ChatRoom.UserRooms.Select(bind => bind.User)
-                    }
-                }).ToListAsync();
-        }
-
-        public async Task<IList<ChatRoom<User, string>>> GetUserRooms(string userId)
+        public async Task<IList<ChatRoom<User, string>>> GetRoomsByUserAsync(string userId)
         {
             //ToDo: temp solution
             DateTime reallyOld = DateTime.Parse("1900-01-01");
+            string currUserId = identityService.CurrentUserId;
 
             return (await this.RoomsQuery
+
                 .Where(x => x.UserRooms.Any(u => u.UserId == userId))
+                .Select(x => new
+                {
+                    ChatRoom = x,
+                    HasUnread = x.Messages.Any(m => m.ReadByUsers.All(r => r.UserId != currUserId))
+                })
                 .Select(x => new ChatRoom<User, string>
                 {
                     //ToDo: Use automapper
-                    Id = x.Id,
-                    IsPrivate = x.IsPrivate,
-                    OwnerId = x.OwnerId,
-                    Owner = x.Owner,
-                    RoomName = x.RoomName,
-                    Participants = x.UserRooms.Select(bind => bind.User).ToList(),
-                    Messages = x.Messages.Select(msg => new Message<User, string>()
+                    Id = x.ChatRoom.Id,
+                    IsPrivate = x.ChatRoom.IsPrivate,
+                    OwnerId = x.ChatRoom.OwnerId,
+                    Owner = x.ChatRoom.Owner,
+                    RoomName = x.ChatRoom.RoomName,
+                    HasUnread = x.HasUnread,
+                    Participants = x.ChatRoom.UserRooms.Select(bind => bind.User).ToList(),
+                    Messages = x.ChatRoom.Messages.Select(msg => new Message<User, string>()
                     {
                         ChatRoomId = msg.ChatRoomId,
                         Id = msg.Id,
@@ -103,7 +89,7 @@ namespace NoSocNet.Infrastructure.Services
                 .ToList();
         }
 
-        public async Task<ChatRoom<User, string>> JoinPrivateAsync(string userId)
+        public async Task<ChatRoom<User, string>> GetPrivateRoomAsync(string userId)
         {
             string currentUserId = identityService.CurrentUserId;
 
@@ -173,6 +159,12 @@ namespace NoSocNet.Infrastructure.Services
                 Text = text
             };
 
+            newMessage.ReadByUsers = new List<MessageReadByUserDto> {
+                new MessageReadByUserDto {
+                    Message=newMessage,
+                    UserId=identityService.CurrentUserId
+            }};
+
             context.Set<MessageDto>().Add(newMessage);
 
             await context.SaveChangesAsync();
@@ -193,6 +185,7 @@ namespace NoSocNet.Infrastructure.Services
                 Text = newMessage.Text,
                 SenderId = newMessage.SenderId,
                 Sender = newMessage.Sender,
+                HasUnread = false,
                 ChatRoom = new ChatRoom<User, string>
                 {
                     Id = newMessage.ChatRoomId,
@@ -207,7 +200,7 @@ namespace NoSocNet.Infrastructure.Services
             return message;
         }
 
-        public async Task<ChatRoom<User, string>> InviteToRoom(string userId, string roomId)
+        public async Task<ChatRoom<User, string>> InviteToRoomAsync(string userId, string roomId)
         {
             if (String.IsNullOrEmpty(userId))
             {
@@ -313,6 +306,58 @@ namespace NoSocNet.Infrastructure.Services
                 }),
                 Participants = item.UserRooms.Select(x => x.User)
             } : null;
+        }
+
+        public async Task SetReadByUserAsync(string userId, string roomId, int? tillMessageId = null)
+        {
+            if (String.IsNullOrEmpty(userId))
+            {
+                throw new ArgumentNullException(nameof(userId));
+            }
+
+            if (String.IsNullOrEmpty(roomId))
+            {
+                throw new ArgumentNullException(nameof(roomId));
+            }
+
+            User user = await this.userStore.GetByIdAsync(userId);
+
+            if (user == null)
+            {
+                throw new Exception($"Cannot find user with Id {userId}");
+            }
+
+            ChatRoomDto room = await this.RoomsQuery
+                .FirstOrDefaultAsync(x => x.Id == roomId);
+
+            if (room == null)
+            {
+                throw new Exception($"Cannot find room with Id {roomId}");
+            }
+
+            //ToDo: install expression builder
+
+            var query = context.Set<MessageDto>().Where(x => x.ChatRoomId == roomId && x.ReadByUsers.All(rb => rb.UserId != userId));
+
+            if (tillMessageId.HasValue)
+            {
+                query = query.Where(x => x.Id <= tillMessageId.Value);
+            }
+
+            var readMessages = await query.Select(x => x.Id).ToListAsync();
+            var reads = readMessages.Select(id => new MessageReadByUserDto
+            {
+                MessageId = id,
+                UserId = userId
+            }).ToArray();
+
+            await context.Set<MessageReadByUserDto>().AddRangeAsync(reads);
+            await context.SaveChangesAsync();
+        }
+
+        public Task<List<User>> NONAMEFORNOW(string userId)
+        {
+            return this.userStore.Query().Where(x => x.UserRooms.All(ur => ur.UserId != userId && ur.ChatRoom.IsPrivate)).ToListAsync();
         }
     }
 }

@@ -8,6 +8,10 @@ namespace NoSocNet.Models
 {
     public class MessageViewModel
     {
+        public MessageViewModel()
+        {
+            this.ReadByUsersIds = new List<string>();
+        }
         public int Id { get; set; }
 
         public string Text { get; set; }
@@ -19,5 +23,7 @@ namespace NoSocNet.Models
         public string SenderId { get; set; }
 
         public string SenderUserName { get; set; }
+
+        public List<string> ReadByUsersIds { get; set; }
     }
 }

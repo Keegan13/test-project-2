@@ -97,6 +97,10 @@ img {
     text-align: left !important;
     overflow: hidden;
     white-space: nowrap;
+
+    &.private {
+        color: red;
+    }
 }
 
 .updated {
@@ -128,8 +132,20 @@ img {
 
 .chats-tabs {
     height: 708px;
+    width: 100%;
     overflow-y: auto;
+
+    .btn-invite {
+        font-weight: 600;
+        text-transform: uppercase;
+        color: white;
+        /* padding: 0px; */
+        /* margin: 0px; */
+        top: 32px;
+    }
 }
+
+
 
 
 .chat-messages {
@@ -185,6 +201,9 @@ img {
 
 .user-list {
     list-style: none;
+    overflow-y: auto;
+    max-height: 494px;
+    padding: 0px;
 
     .user-list-item {
         height: 40px;

@@ -48,8 +48,19 @@
     $('a[data-toggle="tab"]').on('click', function (e) {
         $(e.target).removeClass("updated");
         let tabId = $(e.target).attr("aria-controls");
+        var regex = /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/g;
+        let roomId = regex.exec(tabId);
+
+        //notify that current user have read all messages in current chat room
+        $.ajax({
+            url: '/chat/seen',
+            type: 'PUT',
+            data: `roomId=${roomId}`
+        });
+
         setTimeout(() => {
             $(`#${tabId}`).find(".chat-messages").scrollTop(10000);
+
         }, 500);
     });
 })();

@@ -11,6 +11,8 @@ namespace NoSocNet.DAL.Context
         public virtual DbSet<MessageDto> Messages { get; set; }
         public virtual DbSet<UsersChatRoomsDto> UsersRooms { get; set; }
 
+        public virtual DbSet<MessageReadByUserDto> MessagesReadBy { get; set; }
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
@@ -23,6 +25,7 @@ namespace NoSocNet.DAL.Context
             ConfigureMessages(builder.Entity<MessageDto>());
             ConfigureChatRooms(builder.Entity<ChatRoomDto>());
             ConfigureUserRooms(builder.Entity<UsersChatRoomsDto>());
+            ConfigureMessageRead(builder.Entity<MessageReadByUserDto>());
         }
 
         protected virtual void ConfigureUserRooms(EntityTypeBuilder<UsersChatRoomsDto> entityTypeBuilder)
@@ -37,6 +40,25 @@ namespace NoSocNet.DAL.Context
                 .HasOne(ur => ur.User)
                 .WithMany(u => u.UserRooms)
                 .HasForeignKey(ur => ur.UserId);
+        }
+
+        protected virtual void ConfigureMessageRead(EntityTypeBuilder<MessageReadByUserDto> entityTypeBuilder)
+        {
+            entityTypeBuilder.HasKey(x => new { x.UserId, x.MessageId });
+
+            entityTypeBuilder
+                .HasOne(mu => mu.Message)
+                .WithMany(m => m.ReadByUsers)
+                .HasForeignKey(mu => mu.MessageId);
+
+            entityTypeBuilder
+                .HasOne(mu => mu.User)
+                .WithMany()
+                .HasForeignKey(mu => mu.UserId);
+
+            entityTypeBuilder
+                .Property(x => x.DateRead)
+                .HasDefaultValueSql("getdate()");
         }
 
         protected virtual void ConfigureMessages(EntityTypeBuilder<MessageDto> entityTypeBuilder)

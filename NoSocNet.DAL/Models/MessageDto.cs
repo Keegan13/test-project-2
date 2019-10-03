@@ -6,6 +6,10 @@ namespace NoSocNet.DAL.Models
 {
     public class MessageDto
     {
+        public MessageDto()
+        {
+            this.ReadByUsers = new HashSet<MessageReadByUserDto>();
+        }
         public int Id { get; set; }
 
         public string Text { get; set; }
@@ -20,5 +24,6 @@ namespace NoSocNet.DAL.Models
 
         public virtual User Sender { get; set; }
 
+        public ICollection<MessageReadByUserDto> ReadByUsers { get; set; }
     }
 }

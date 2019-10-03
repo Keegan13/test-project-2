@@ -17,6 +17,8 @@ namespace NoSocNet.BLL.Models
         public string OwnerId { get; set; }
         public TUser Owner { get; set; }
 
+        public bool HasUnread { get; set; }
+
         public IEnumerable<Message<TUser, TKey>> Messages { get; set; }
     }
 }

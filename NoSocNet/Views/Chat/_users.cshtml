@@ -1,0 +1,15 @@
+﻿@model IEnumerable<UserViewModel>
+@{
+    Layout = null;
+}
+<h2>Choose who to talk with </h2>
+
+
+<ul class="user-list mt-4">
+    @foreach (var user in Model)
+    {
+        <li class="user-list-item">@user.UserName <a class="btn btn-primary btn-chat float-right" asp-action="Private" asp-route-id="@user.Id">Talk</a></li>
+    }
+</ul>
+
+
