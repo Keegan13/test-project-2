@@ -55,7 +55,7 @@ namespace NoSocNet.Infrastructure.Services.Hub
             this._event -= handler;
         }
 
-        public void Notify(Object message, params string[] usersIds)
+        public void Notify(HubNotification notification, params string[] usersIds)
         {
             List<Guid> destinationsIds = new List<Guid>();
 
@@ -67,7 +67,7 @@ namespace NoSocNet.Infrastructure.Services.Hub
                 }
             }
 
-            this._event.Invoke(this, new HubNotificationArguments(message, destinationsIds) { Type = NotificationType.Message });
+            this._event.Invoke(this, new HubNotificationArguments(notification, destinationsIds));
             _resetEvent.Set();
         }
     }

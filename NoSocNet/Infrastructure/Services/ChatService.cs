@@ -18,19 +18,19 @@ namespace NoSocNet.Infrastructure.Services
     {
         private readonly DbContext context;
         private readonly IIdentityService<User> identityService;
-        private readonly IMessageSender<User, string> messageSender;
         private readonly IApplicationUserStore<User> userStore;
+        private readonly INotificator<string> notificator;
 
         public ChatService(
             DbContext context,
             IIdentityService<User> identity,
-            IMessageSender<User, string> messageSender,
+            INotificator<string> notificator,
             IApplicationUserStore<User> userStore
             )
         {
             this.userStore = userStore;
             this.context = context;
-            this.messageSender = messageSender;
+            this.notificator = notificator;
             this.identityService = identity;
         }
 
@@ -89,7 +89,7 @@ namespace NoSocNet.Infrastructure.Services
                 .ToList();
         }
 
-        public async Task<ChatRoom<User, string>> GetPrivateRoomAsync(string userId)
+        public async Task<ChatRoom<User, string>> GetOrCreatePrivateRoomWith(string userId)
         {
             string currentUserId = identityService.CurrentUserId;
 
@@ -104,9 +104,7 @@ namespace NoSocNet.Infrastructure.Services
             }
 
             var privateRoom = await this.RoomsQuery
-                .FirstOrDefaultAsync(x => x.IsPrivate && x.UserRooms.All(ur => ur.UserId == userId || ur.UserId == currentUserId));
-
-
+                .FirstOrDefaultAsync(x => x.IsPrivate && x.UserRooms.Any(ur => ur.UserId == currentUserId) && x.UserRooms.Any(ur => ur.UserId == userId));
 
             if (privateRoom == null)
             {
@@ -130,7 +128,7 @@ namespace NoSocNet.Infrastructure.Services
                 privateRoom = newRoom;
             }
 
-            return new ChatRoom<User, string>
+            var room = new ChatRoom<User, string>
             {
                 Id = privateRoom.Id,
                 IsPrivate = privateRoom.IsPrivate,
@@ -147,6 +145,10 @@ namespace NoSocNet.Infrastructure.Services
                 }),
                 Participants = privateRoom.UserRooms.Select(x => x.User)
             };
+
+            await notificator.Notificate(new NewChatNotification<User, string>(room, room.Participants.Select(x => x.Id)));
+
+            return room;
         }
 
         public async Task<Message<User, string>> Push(string userId, string roomId, string text)
@@ -195,7 +197,7 @@ namespace NoSocNet.Infrastructure.Services
             };
 
 
-            await this.messageSender.Push(message, message.ChatRoom.Participants.Select(x => x.Id));
+            await this.notificator.Notificate(new MessageNotification<User, string>(message, message.ChatRoom.Participants.Select(x => x.Id)));
 
             return message;
         }
@@ -257,9 +259,7 @@ namespace NoSocNet.Infrastructure.Services
             context.Entry(room).State = EntityState.Detached;
 
             //end temp fix
-
-
-            return new ChatRoom<User, string>
+            var roomModel = new ChatRoom<User, string>
             {
                 Id = room.Id,
                 IsPrivate = room.IsPrivate,
@@ -276,6 +276,16 @@ namespace NoSocNet.Infrastructure.Services
                 }),
                 Participants = room.UserRooms.Select(x => x.User)
             };
+
+            await notificator.Notificate(new ChatJoinNoitification<User, string>(new NewChatUser<User, string>
+            {
+                Room = roomModel,
+                User = user
+            }, room.UserRooms.Select(x => x.UserId).Where(x => x != userId).ToArray()));
+
+            await notificator.Notificate(new NewChatNotification<User, string>(roomModel, new[] { userId }));
+
+            return roomModel;
         }
 
         public async Task<ChatRoom<User, string>> GetRoomAsync(string roomId)
@@ -355,9 +365,12 @@ namespace NoSocNet.Infrastructure.Services
             await context.SaveChangesAsync();
         }
 
-        public Task<List<User>> NONAMEFORNOW(string userId)
+        public Task<List<User>> GetPrivateRoomSupplementFor(string userId)
         {
-            return this.userStore.Query().Where(x => x.UserRooms.All(ur => ur.UserId != userId && ur.ChatRoom.IsPrivate)).ToListAsync();
+            return this.userStore
+                .Query()
+                .Where(x => x.UserRooms.Where(ur => ur.ChatRoom.IsPrivate).All(ur => !ur.ChatRoom.UserRooms.Any(r => r.UserId == userId)))
+                .ToListAsync();
         }
     }
 }

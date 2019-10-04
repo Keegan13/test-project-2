@@ -19,20 +19,18 @@ namespace NoSocNet.Controllers
     public class HubController : Controller
     {
         public readonly IIdentityService<User> identity;
-        private readonly HubMessageSender hub;
+        private readonly ApplicationNotificator notificator;
         private readonly MessageObserver observer;
 
-        private Object message = null;
-
         public HubController(
-            IMessageSender<User, string> hub,
+            ApplicationNotificator notificator,
             IIdentityService<User> identity,
             MessageObserver observer
             )
         {
             this.observer = observer;
             this.identity = identity;
-            this.hub = hub as HubMessageSender;
+            this.notificator = notificator;
         }
 
 
@@ -42,13 +40,13 @@ namespace NoSocNet.Controllers
         {
             var model = new HubResponseViewModel();
 
-            if (HttpContext.Request.Cookies.TryGetValue("connectionId", out string existingConnection) && Guid.TryParse(existingConnection, out Guid connection) && this.hub.Subscribe(connection, null))
+            if (HttpContext.Request.Cookies.TryGetValue("connectionId", out string existingConnection) && Guid.TryParse(existingConnection, out Guid connection) && this.notificator.Subscribe(connection, null))
             {
                 model.ConnectionId = existingConnection;
             }
             else
             {
-                model.ConnectionId = this.hub.Connect(this.identity.CurrentUserId).ToString();
+                model.ConnectionId = this.notificator.Connect(this.identity.CurrentUserId).ToString();
             }
 
             HttpContext.Response.Cookies.Append("connectionId", model.ConnectionId.ToString(), new Microsoft.AspNetCore.Http.CookieOptions

@@ -1,4 +1,8 @@
-﻿using System;
+﻿using NoSocNet.BLL.Services;
+using NoSocNet.DAL.Models;
+using NoSocNet.Extensions;
+using NoSocNet.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -8,24 +12,28 @@ namespace NoSocNet.Infrastructure.Services.Hub
 {
     public class MessageObserver
     {
-        private readonly HubMessageSender hub;
-        private readonly ManualResetEvent notificator;
-
         public Guid ConnectionId { get; private set; }
-        private Object message = null;
-        private bool receivedMessage = false;
+
+        private readonly ApplicationNotificator hub;
+        private readonly ManualResetEvent notificator;
+        private HubNotification Notification = null;
+        private readonly IIdentityService<User> identity;
+        private bool notificationReceived = false;
 
         public MessageObserver(
-            HubMessageSender hub
+            IIdentityService<User> identity,
+            ApplicationNotificator hub
             )
         {
+            this.identity = identity;
             this.hub = hub;
             this.notificator = hub.GetNotificator();
         }
 
-        public Object GetMessageOrDefaultAsync(Guid connectionId, int? timeOut = null)
+        public HubNotification GetMessageOrDefaultAsync(Guid connectionId, int? timeOut = null)
         {
             this.ConnectionId = connectionId;
+
             DateTime globTimeout = timeOut.HasValue ? DateTime.Now.AddMilliseconds(timeOut.Value) : DateTime.Now.AddDays(1);
             var handler = new EventHandler<HubNotificationArguments>(onMessageHandler);
 
@@ -33,7 +41,7 @@ namespace NoSocNet.Infrastructure.Services.Hub
 
             try
             {
-                while (!this.receivedMessage && DateTime.Now < globTimeout)
+                while (!this.notificationReceived && DateTime.Now < globTimeout)
                 {
                     if (timeOut.HasValue)
                     {
@@ -54,15 +62,23 @@ namespace NoSocNet.Infrastructure.Services.Hub
                 this.hub.Unsubscribe(handler);
             }
 
-            return this.message;
+            return this.Notification;
         }
 
         private void onMessageHandler(object sender, HubNotificationArguments e)
         {
             if (e.Connections.Contains(this.ConnectionId))
             {
-                this.message = e.Message;
-                this.receivedMessage = true;
+                this.Notification = e.Notification;
+
+
+                //warning КОСТИЛЬ
+                if (this.Notification.Notification is ChatRoomViewModel chatRoom)
+                {
+                    chatRoom.RoomName = chatRoom.GetRoomName(identity.CurrentUserId);
+                }
+
+                this.notificationReceived = true;
             }
         }
     }

@@ -20,11 +20,14 @@ namespace NoSocNet.Models
 
         public UserViewModel Owner { get; set; }
 
-
-
         public string OwnerId { get; set; }
 
         public string Id { get; set; }
         public bool HasUnread { get; set; } = false;
+
+        ////WARNING HACK
+        //public string RenderedTab { get; set; }
+
+        //public string RenderedTabLink { get; set; }
     }
 }

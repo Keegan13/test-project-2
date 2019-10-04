@@ -1,9 +1,10 @@
 ﻿namespace NoSocNet.Infrastructure.Services.Hub
 {
-    public enum NotificationType
+    public enum HubNotificationType
     {
         Message,
         ChatJoin,
-        NewChat
+        NewChat,
+        OnTyping
     }
 }

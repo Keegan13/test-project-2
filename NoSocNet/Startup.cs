@@ -55,9 +55,9 @@ namespace NoSocNet
             services.AddHttpContextAccessor();
 
             services.AddScoped<DbContext, ApplicationDbContext>(factory => factory.GetRequiredService<ApplicationDbContext>());
-            services.AddSingleton<HubMessageSender>();
+            services.AddSingleton<ApplicationNotificator>();
             services.AddTransient<MessageObserver>();
-            services.AddSingleton<IMessageSender<User, string>>(factory => factory.GetRequiredService<HubMessageSender>() as IMessageSender<User, string>);
+            services.AddSingleton(factory => factory.GetRequiredService<ApplicationNotificator>() as INotificator<string>);
 
             services.AddScoped<IIdentityService<User>, IdentityService>();
             services.AddScoped<IApplicationUserStore<User>, ApplicationUserStore>();

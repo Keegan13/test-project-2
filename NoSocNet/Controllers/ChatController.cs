@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using NoSocNet.BLL.Models;
 using NoSocNet.BLL.Services;
 using NoSocNet.DAL.Models;
+using NoSocNet.Extensions;
 using NoSocNet.Models;
 using System;
 using System.Collections.Generic;
@@ -41,40 +42,6 @@ namespace NoSocNet.Controllers
             this.chatService = chatService;
         }
 
-        public async Task<IActionResult> Users()
-        {
-            var model = (await this.chatService
-                .NONAMEFORNOW(identity.CurrentUserId))
-                .Select(x => mapper.Map<UserViewModel>(x));
-
-            return PartialView("_Users", model);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Get()
-        {
-            var rooms = await chatService.GetRoomsByUserAsync(identity.CurrentUserId);
-
-            return View(rooms);
-        }
-
-        [NonAction]
-        public static string GetRoomName(ChatRoom<User, string> room, string currentUserId)
-        {
-            if (!String.IsNullOrEmpty(room.RoomName))
-            {
-                return room.RoomName;
-            }
-
-            if (room.IsPrivate)
-            {
-                return room.Participants.FirstOrDefault(x => x.Id != currentUserId)?.UserName;
-            }
-
-            return room.Participants.Where(x => x.Id != currentUserId).Aggregate("# ", (agg, next) => agg += next.UserName + ", ").Trim(' ', ',');
-        }
-
-#pragma warning disable 414, CS1998  
         [HttpPut]
         public async Task<IActionResult> Seen(string roomId, int? id = null)
         {
@@ -83,32 +50,44 @@ namespace NoSocNet.Controllers
 
             return Ok();
         }
-#pragma warning restore CS1998 
+
 
         [HttpGet]
         public async Task<IActionResult> Index(string roomId = null)
         {
-            var rooms = await chatService.GetRoomsByUserAsync(identity.CurrentUserId);
-
             string userId = this.identity.CurrentUserId;
-            var model = rooms.Select(x => new ChatRoomViewModel
-            {
-                Id = x.Id,
-                RoomName = GetRoomName(x, userId),
-                OwnerId = x.OwnerId,
-                IsPrivate = x.IsPrivate,
-                Messages = x.Messages.Select(ms => mapper.Map<MessageViewModel>(ms)).ToList(),
-                Owner = mapper.Map<UserViewModel>(x.Owner),
-                Participants = x.Participants.Select(u => mapper.Map<UserViewModel>(u)).ToList(),
-                HasUnread = x.HasUnread
-            });
 
-            if (!String.IsNullOrEmpty(roomId) && model.Any(x => x.Id == roomId))
+            var rooms = (await chatService.GetRoomsByUserAsync(userId))
+                .Select(x => new ChatRoomViewModel
+                {
+                    Id = x.Id,
+                    RoomName = x.GetRoomName(userId),
+                    OwnerId = x.OwnerId,
+                    IsPrivate = x.IsPrivate,
+                    Messages = x.Messages.Select(ms => mapper.Map<MessageViewModel>(ms)).ToList(),
+                    Owner = mapper.Map<UserViewModel>(x.Owner),
+                    Participants = x.Participants.Select(u => mapper.Map<UserViewModel>(u)).ToList(),
+                    HasUnread = x.HasUnread
+                });
+
+            var users = (await chatService.GetPrivateRoomSupplementFor(userId))
+                .Select(x => new UserViewModel
+                {
+                    Id = x.Id,
+                    Email = x.Email,
+                    UserName = x.UserName
+                });
+
+            if (!String.IsNullOrEmpty(roomId) && rooms.Any(x => x.Id == roomId))
             {
                 ViewBag.SelectedId = roomId;
             }
 
-            return View(model);
+            return View(new IndexViewModel
+            {
+                Rooms = rooms,
+                Users = users
+            });
         }
 
         public async Task<IActionResult> Invite(string id)
@@ -120,7 +99,7 @@ namespace NoSocNet.Controllers
             {
                 var model = new InviteViewModel
                 {
-                    RoomName = GetRoomName(chatRoom, identity.CurrentUserId),
+                    RoomName = chatRoom.GetRoomName(identity.CurrentUserId),
                     RoomId = id,
                     Users = users
                         .Where(x => !chatRoom.Participants.Select(ps => ps.Id).Contains(x.Id))
@@ -154,7 +133,7 @@ namespace NoSocNet.Controllers
                 Participants = room.Participants.Select(x => mapper.Map<UserViewModel>(x)).ToList(),
                 IsPrivate = room.IsPrivate,
                 Owner = mapper.Map<UserViewModel>(room.Owner),
-                RoomName = GetRoomName(room, identity.CurrentUserId),
+                RoomName = room.GetRoomName(identity.CurrentUserId),
                 OwnerId = room.OwnerId
             };
 
@@ -165,6 +144,11 @@ namespace NoSocNet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Sent(string text, string roomId)
         {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return Ok();
+            }
+
             if (await this.chatService.Push(this.identity.CurrentUserId, roomId, text) is Message<User, string> message)
             {
                 return new JsonResult(new MessageViewModel
@@ -181,12 +165,12 @@ namespace NoSocNet.Controllers
             return NotFound(new { roomId });
         }
 
-
-        public async Task<IActionResult> Private(string Id)
+        [HttpGet]
+        public async Task<IActionResult> Private(string id)
         {
             try
             {
-                var chatRoom = await this.chatService.GetPrivateRoomAsync(Id);
+                var chatRoom = await this.chatService.GetOrCreatePrivateRoomWith(id);
 
                 var model = new ChatRoomViewModel
                 {
@@ -200,7 +184,8 @@ namespace NoSocNet.Controllers
                     Owner = mapper.Map<UserViewModel>(chatRoom.Owner)
                 };
 
-                return RedirectToAction("Index", new { roomId = chatRoom.Id });
+                return Json(model);
+                //return RedirectToAction("Index", new { roomId = chatRoom.Id });
             }
             catch (Exception ex)
             {
@@ -214,7 +199,6 @@ namespace NoSocNet.Controllers
             try
             {
                 var chatRoom = await this.chatService.InviteToRoomAsync(userid, roomId);
-
 
                 return RedirectToAction("Room", new { id = chatRoom });
             }
@@ -243,7 +227,7 @@ namespace NoSocNet.Controllers
                     Participants = room.Participants.Select(x => mapper.Map<UserViewModel>(x)).ToList(),
                     IsPrivate = room.IsPrivate,
                     Owner = mapper.Map<UserViewModel>(room.Owner),
-                    RoomName = GetRoomName(room, identity.CurrentUserId),
+                    RoomName = room.GetRoomName(identity.CurrentUserId),
                     OwnerId = room.OwnerId
                 };
 
