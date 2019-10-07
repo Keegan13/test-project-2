@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using ExpressionBuilder;
 using ExpressionBuilder.Generics;
 using ExpressionBuilder.Operations;
+using NoSocNet.BLL.Abstractions.Repositories;
+using NoSocNet.Infrastructure.Repositories;
 
 namespace NoSocNet.Infrastructure.Services
 {
@@ -20,14 +22,23 @@ namespace NoSocNet.Infrastructure.Services
         private readonly IIdentityService<User> identityService;
         private readonly IApplicationUserStore<User> userStore;
         private readonly INotificator<string> notificator;
+        private readonly IRoomRepositoryStore<User, string> roomRepo;
+        private readonly IUserRepository<User, string> userRepo;
+        private readonly IMessageRepository<string> messageRepo;
 
         public ChatService(
             DbContext context,
             IIdentityService<User> identity,
             INotificator<string> notificator,
-            IApplicationUserStore<User> userStore
+            IApplicationUserStore<User> userStore,
+            IRoomRepositoryStore<User, string> roomRepo,
+            IUserRepository<User, string> userRepo,
+            IMessageRepository<string> messageRepo
             )
         {
+            this.messageRepo = messageRepo;
+            this.userRepo = userRepo;
+            this.roomRepo = roomRepo;
             this.userStore = userStore;
             this.context = context;
             this.notificator = notificator;
@@ -102,6 +113,8 @@ namespace NoSocNet.Infrastructure.Services
             {
                 throw new ArgumentException("User does not exists");
             }
+
+
 
             var privateRoom = await this.RoomsQuery
                 .FirstOrDefaultAsync(x => x.IsPrivate && x.UserRooms.Any(ur => ur.UserId == currentUserId) && x.UserRooms.Any(ur => ur.UserId == userId));
@@ -318,60 +331,14 @@ namespace NoSocNet.Infrastructure.Services
             } : null;
         }
 
-        public async Task SetReadByUserAsync(string userId, string roomId, int? tillMessageId = null)
+        public Task SetReadByUserAsync(string userId, string roomId, int? tillMessageId = null)
         {
-            if (String.IsNullOrEmpty(userId))
-            {
-                throw new ArgumentNullException(nameof(userId));
-            }
-
-            if (String.IsNullOrEmpty(roomId))
-            {
-                throw new ArgumentNullException(nameof(roomId));
-            }
-
-            User user = await this.userStore.GetByIdAsync(userId);
-
-            if (user == null)
-            {
-                throw new Exception($"Cannot find user with Id {userId}");
-            }
-
-            ChatRoomDto room = await this.RoomsQuery
-                .FirstOrDefaultAsync(x => x.Id == roomId);
-
-            if (room == null)
-            {
-                throw new Exception($"Cannot find room with Id {roomId}");
-            }
-
-            //ToDo: install expression builder
-
-            var query = context.Set<MessageDto>().Where(x => x.ChatRoomId == roomId && x.ReadByUsers.All(rb => rb.UserId != userId));
-
-            if (tillMessageId.HasValue)
-            {
-                query = query.Where(x => x.Id <= tillMessageId.Value);
-            }
-
-            var readMessages = await query.Select(x => x.Id).ToListAsync();
-            var reads = readMessages.Select(id => new MessageReadByUserDto
-            {
-                MessageId = id,
-                UserId = userId
-            }).ToArray();
-
-            await context.Set<MessageReadByUserDto>().AddRangeAsync(reads);
-            await context.SaveChangesAsync();
+            return messageRepo.SetReadByUserAsync(userId, roomId, tillMessageId);
         }
 
-        public Task<List<User>> GetPrivateRoomSupplementFor(string userId)
+        public async Task<List<User>> GetPrivateRoomSupplementFor(string userId)
         {
-            string currUserId = identityService.CurrentUserId;
-            return this.userStore
-                .Query()
-                .Where(x => x.Id != currUserId && x.UserRooms.Where(ur => ur.ChatRoom.IsPrivate).All(ur => !ur.ChatRoom.UserRooms.Any(r => r.UserId == userId)))
-                .ToListAsync();
+            return (await this.userRepo.GetPrivateRoomSuplementAsync(userId)).Items.ToList();
         }
     }
 }

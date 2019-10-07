@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using NoSocNet.BLL.Abstractions.Repositories;
 using NoSocNet.BLL.Models;
 using NoSocNet.BLL.Services;
 using NoSocNet.DAL.Models;
@@ -24,17 +25,19 @@ namespace NoSocNet.Controllers
         private readonly IMapper mapper;
         private readonly IApplicationUserStore<User> userStore;
         private readonly IIdentityService<User> identity;
+        private readonly IRoomRepositoryStore<User, string> roomRepo;
 
         public ChatController(
             IChatService<User, string> chatService,
             IIdentityService<User> identity,
             UserManager<User> userManager,
             IApplicationUserStore<User> userStore,
-            IMapper mapper
+            IMapper mapper,
+            IRoomRepositoryStore<User, string> roomRepo
             //ILogger logger
             )
         {
-
+            this.roomRepo = roomRepo;
             this.mapper = mapper;
             this.userStore = userStore;
             this.userManager = userManager;
@@ -57,7 +60,7 @@ namespace NoSocNet.Controllers
         {
             string userId = this.identity.CurrentUserId;
 
-            var rooms = (await chatService.GetRoomsByUserAsync(userId))
+            var rooms = (await roomRepo.GetRoomsByUserAsync(userId)).Items
                 .Select(x => new ChatRoomViewModel
                 {
                     Id = x.Id,
@@ -76,7 +79,8 @@ namespace NoSocNet.Controllers
                     Id = x.Id,
                     Email = x.Email,
                     UserName = x.UserName
-                });
+                })
+                .OrderBy(x => x.UserName);
 
             if (!String.IsNullOrEmpty(roomId) && rooms.Any(x => x.Id == roomId))
             {

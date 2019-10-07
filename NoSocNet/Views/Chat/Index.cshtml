@@ -1,7 +1,6 @@
 ﻿@model IndexViewModel
 @inject IIdentityService<User> identity;
 @{
-
     ViewData["Title"] = "My chats";
     Layout = "~/Views/Shared/_Layout.cshtml";
     string currUserId = identity.CurrentUserId;

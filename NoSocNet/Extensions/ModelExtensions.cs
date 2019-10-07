@@ -19,7 +19,8 @@ namespace NoSocNet.Extensions
 
             if (room.IsPrivate)
             {
-                return room.Participants.FirstOrDefault(x => x.Id != currentUserId)?.UserName;
+                var name = room.Participants.FirstOrDefault(x => x.Id != currentUserId)?.UserName;
+                return "Empty Chat";
             }
 
             return room.Participants.Where(x => x.Id != currentUserId).Aggregate("# ", (agg, next) => agg += next.UserName + ", ").Trim(' ', ',');

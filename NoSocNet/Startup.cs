@@ -20,6 +20,9 @@ using AutoMapper;
 using NoSocNet.BLL.Models;
 using NoSocNet.Models;
 using NoSocNet.Infrastructure.Services.Hub;
+using Microsoft.Extensions.Hosting;
+using NoSocNet.BLL.Abstractions.Repositories;
+using NoSocNet.Infrastructure.Repositories;
 
 namespace NoSocNet
 {
@@ -55,7 +58,13 @@ namespace NoSocNet
             services.AddHttpContextAccessor();
 
             services.AddScoped<DbContext, ApplicationDbContext>(factory => factory.GetRequiredService<ApplicationDbContext>());
+
+            services.AddScoped<IRoomRepositoryStore<User, string>, RoomRepository>();
+            services.AddScoped<IUserRepository<User, string>, UserRepository>();
+            services.AddScoped<IMessageRepository<string>, MessageRepository>();
+
             services.AddSingleton<ApplicationNotificator>();
+
             services.AddTransient<MessageObserver>();
             services.AddSingleton(factory => factory.GetRequiredService<ApplicationNotificator>() as INotificator<string>);
 
@@ -68,10 +77,13 @@ namespace NoSocNet
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
+            //workers
+            services.AddSingleton<IHostedService, ConnectionCleanup>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
