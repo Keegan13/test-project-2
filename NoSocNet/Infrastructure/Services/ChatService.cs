@@ -37,15 +37,15 @@ namespace NoSocNet.Infrastructure.Services
         protected virtual IQueryable<MessageDto> MessagesQuery => context
             .Set<MessageDto>()
             .Include(x => x.ChatRoom).ThenInclude(x => x.UserRooms)
-            .Include(x => x.Sender)
+            .Include(x => x.SenderUser)
             ;
         protected virtual IQueryable<UsersChatRoomsDto> UserRoomQuery => context
             .Set<UsersChatRoomsDto>();
 
         protected virtual IQueryable<ChatRoomDto> RoomsQuery => context
             .Set<ChatRoomDto>()
-            .Include(x => x.Owner)
-            .Include(x => x.Messages).ThenInclude(x => x.Sender)
+            .Include(x => x.OwnerUser)
+            .Include(x => x.Messages).ThenInclude(x => x.SenderUser)
             .Include(x => x.UserRooms).ThenInclude(x => x.User);
 
         public async Task<IList<ChatRoom<User, string>>> GetRoomsByUserAsync(string userId)
@@ -67,8 +67,8 @@ namespace NoSocNet.Infrastructure.Services
                     //ToDo: Use automapper
                     Id = x.ChatRoom.Id,
                     IsPrivate = x.ChatRoom.IsPrivate,
-                    OwnerId = x.ChatRoom.OwnerId,
-                    Owner = x.ChatRoom.Owner,
+                    OwnerId = x.ChatRoom.OwnerUserId,
+                    Owner = x.ChatRoom.OwnerUser,
                     RoomName = x.ChatRoom.RoomName,
                     HasUnread = x.HasUnread,
                     Participants = x.ChatRoom.UserRooms.Select(bind => bind.User).ToList(),
@@ -77,8 +77,8 @@ namespace NoSocNet.Infrastructure.Services
                         ChatRoomId = msg.ChatRoomId,
                         Id = msg.Id,
                         SendDate = msg.SendDate,
-                        SenderId = msg.SenderId,
-                        Sender = msg.Sender,
+                        SenderId = msg.SenderUserId,
+                        Sender = msg.SenderUser,
                         ChatRoom = null,
                         Text = msg.Text
                     })
@@ -108,7 +108,7 @@ namespace NoSocNet.Infrastructure.Services
 
             if (privateRoom == null)
             {
-                ChatRoomDto newRoom = new ChatRoomDto { IsPrivate = true, OwnerId = identityService.CurrentUserId };
+                ChatRoomDto newRoom = new ChatRoomDto { IsPrivate = true, OwnerUserId = identityService.CurrentUserId };
 
                 newRoom.UserRooms = new List<UsersChatRoomsDto> {
                     new UsersChatRoomsDto {
@@ -123,7 +123,7 @@ namespace NoSocNet.Infrastructure.Services
 
                 this.context.Add(newRoom);
                 await this.context.SaveChangesAsync();
-                await this.context.Entry(newRoom).Reference(x => x.Owner).LoadAsync();
+                await this.context.Entry(newRoom).Reference(x => x.OwnerUser).LoadAsync();
                 await this.context.Entry(newRoom).Collection(x => x.UserRooms).Query().Include(x => x.User).LoadAsync();
                 privateRoom = newRoom;
             }
@@ -132,15 +132,15 @@ namespace NoSocNet.Infrastructure.Services
             {
                 Id = privateRoom.Id,
                 IsPrivate = privateRoom.IsPrivate,
-                Owner = privateRoom.Owner,
-                OwnerId = privateRoom.OwnerId,
+                Owner = privateRoom.OwnerUser,
+                OwnerId = privateRoom.OwnerUserId,
                 Messages = privateRoom.Messages.Select(x => new Message<User, string>
                 {
                     ChatRoomId = privateRoom.Id,
                     Id = x.Id,
                     SendDate = x.SendDate,
-                    SenderId = x.SenderId,
-                    Sender = x.Sender,
+                    SenderId = x.SenderUserId,
+                    Sender = x.SenderUser,
                     Text = x.Text
                 }),
                 Participants = privateRoom.UserRooms.Select(x => x.User)
@@ -157,7 +157,7 @@ namespace NoSocNet.Infrastructure.Services
             {
                 ChatRoomId = roomId,
                 SendDate = DateTime.Now,
-                SenderId = identityService.CurrentUserId,
+                SenderUserId = identityService.CurrentUserId,
                 Text = text
             };
 
@@ -171,7 +171,7 @@ namespace NoSocNet.Infrastructure.Services
 
             await context.SaveChangesAsync();
 
-            await context.Entry(newMessage).Reference(s => s.Sender).LoadAsync();
+            await context.Entry(newMessage).Reference(s => s.SenderUser).LoadAsync();
             await context.Entry(newMessage)
                 .Reference(s => s.ChatRoom)
                 .Query()
@@ -185,8 +185,8 @@ namespace NoSocNet.Infrastructure.Services
                 ChatRoomId = newMessage.ChatRoomId,
                 SendDate = newMessage.SendDate,
                 Text = newMessage.Text,
-                SenderId = newMessage.SenderId,
-                Sender = newMessage.Sender,
+                SenderId = newMessage.SenderUserId,
+                Sender = newMessage.SenderUser,
                 HasUnread = false,
                 ChatRoom = new ChatRoom<User, string>
                 {
@@ -263,15 +263,15 @@ namespace NoSocNet.Infrastructure.Services
             {
                 Id = room.Id,
                 IsPrivate = room.IsPrivate,
-                Owner = room.Owner,
-                OwnerId = room.OwnerId,
+                Owner = room.OwnerUser,
+                OwnerId = room.OwnerUserId,
                 Messages = room.Messages.Select(x => new Message<User, string>
                 {
                     ChatRoomId = room.Id,
                     Id = x.Id,
                     SendDate = x.SendDate,
-                    SenderId = x.SenderId,
-                    Sender = x.Sender,
+                    SenderId = x.SenderUserId,
+                    Sender = x.SenderUser,
                     Text = x.Text
                 }),
                 Participants = room.UserRooms.Select(x => x.User)
@@ -302,17 +302,17 @@ namespace NoSocNet.Infrastructure.Services
             {
                 Id = item.Id,
                 IsPrivate = item.IsPrivate,
-                Owner = item.Owner,
+                Owner = item.OwnerUser,
                 RoomName = item.RoomName,
-                OwnerId = item.OwnerId,
+                OwnerId = item.OwnerUserId,
                 Messages = item.Messages.Select(x => new Message<User, string>
                 {
                     ChatRoomId = x.ChatRoomId,
                     Id = x.Id,
                     SendDate = x.SendDate,
-                    SenderId = x.SenderId,
+                    SenderId = x.SenderUserId,
                     Text = x.Text,
-                    Sender = x.Sender
+                    Sender = x.SenderUser
                 }),
                 Participants = item.UserRooms.Select(x => x.User)
             } : null;
@@ -367,9 +367,10 @@ namespace NoSocNet.Infrastructure.Services
 
         public Task<List<User>> GetPrivateRoomSupplementFor(string userId)
         {
+            string currUserId = identityService.CurrentUserId;
             return this.userStore
                 .Query()
-                .Where(x => x.UserRooms.Where(ur => ur.ChatRoom.IsPrivate).All(ur => !ur.ChatRoom.UserRooms.Any(r => r.UserId == userId)))
+                .Where(x => x.Id != currUserId && x.UserRooms.Where(ur => ur.ChatRoom.IsPrivate).All(ur => !ur.ChatRoom.UserRooms.Any(r => r.UserId == userId)))
                 .ToListAsync();
         }
     }

@@ -71,7 +71,8 @@
 })(jQuery);
 
 (function () {
-    $('a[data-toggle="tab"]').on('click', function (e) {
+    $(document).on('click', 'a[data-toggle="tab"]', function (e) {
+
         $(e.target).removeClass("updated");
         let tabId = $(e.target).attr("aria-controls");
         var regex = /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/g;
@@ -88,6 +89,9 @@
             $(`#${tabId}`).find(".chat-messages").scrollTop(10000);
 
         }, 500);
+
+        // what you want to happen when mouseover and mouseout 
+        // occurs on elements that match '.dosomething'
     });
 })();
 
@@ -118,7 +122,7 @@ function clearModal() {
 }
 
 function onNewChatSuccess() {
-    $(this).remove();
+    //$(this).remove();
 }
 
 function onNewParticipants(content) {

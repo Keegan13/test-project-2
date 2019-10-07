@@ -85,11 +85,23 @@
                     return;
                 }
 
+
+                let userIdregex=/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/g;
+                tabLinkContainer.find("a[data-ajax-url]").filter((idx, item) => {
+                    let match = userIdregex.exec($(item).attr("data-ajax-url"));
+                    let userId = match&&match.length > 0 ? match[0] : "";
+
+                    return chat.participants.some(p => p.id == userId);
+                }).remove();
+
+
+
+
                 //MAINTANCE HELL
                 $(`<div class="tab-pane fade" id="chat${chat.id}" role="tabpanel" aria-labelledby="chat${chat.id}-tab"><div class="mb-3 mt-2"><h4 class="chat-heading d-inline-block align-middle">${chat.roomName}</h4><a data-ajax="true" class="btn btn-primary btn-invite d-inline-block align-middle float-right" data-ajax-success="partialModal" data-ajax-method="GET" data-ajax-url="/Chat/Invite/${chat.id}"><i class="fa fa-plus-circle"></i></a></div><div class="chat-messages"></div><form method="post" data-ajax="true" data-ajax-method="post" data-ajax-url="/Chat/Sent" data-ajax-success="onMessageSent" class="mt-2"><div class="input-group"><input type="hidden" name="roomid" value="${chat.id}"/><textarea class="form-control" name="text" value="" placeholder="Type a message" required></textarea><button type="submit" class="btn"><i class="fa fa-telegram" style="font-size:36px;color:cornflowerblue"></i></button></div></form></div>`)
                     .appendTo(tabContainer);
 
-                $(`<a class="nav-item nav-link d-block w-100 chat-tab-link" id="chat${chat.id}-tab" data-toggle="tab" href="#chat${chat.Id}" role="tab" aria-controls="chat${chat.id}" aria-selected="false"><i class="fa fa-user"></i> ${chat.roomName}</a>`).prependTo(tabLinkContainer);
+                $(`<a class="nav-item nav-link d-block w-100 chat-tab-link" id="chat${chat.id}-tab" data-toggle="tab" href="#chat${chat.id}" role="tab" aria-controls="chat${chat.id}" aria-selected="false"><i class="fa fa-user"></i> ${chat.roomName}</a>`).prependTo(tabLinkContainer);
             };
 
             let _userJoinAlert = function (userJoin) {

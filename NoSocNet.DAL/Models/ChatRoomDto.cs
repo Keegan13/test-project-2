@@ -18,8 +18,8 @@ namespace NoSocNet.DAL.Models
 
         public bool IsPrivate { get; set; }
 
-        public User Owner { get; set; }
-        public string OwnerId { get; set; }
+        public User OwnerUser { get; set; }
+        public string OwnerUserId { get; set; }
         public virtual ICollection<MessageDto> Messages { get; set; }
         public virtual ICollection<UsersChatRoomsDto> UserRooms { get; set; }
     }

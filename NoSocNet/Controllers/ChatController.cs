@@ -141,7 +141,7 @@ namespace NoSocNet.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        //[ValidateAntiForgeryToken]
         public async Task<IActionResult> Sent(string text, string roomId)
         {
             if (string.IsNullOrWhiteSpace(text))

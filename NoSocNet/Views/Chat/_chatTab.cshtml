@@ -15,7 +15,7 @@
     }
 </div>
 
-<form method="post" data-ajax="true" data-ajax-method="post" data-ajax-url="/Chat/Sent" data-ajax-success="onMessageSent" asp-antiforgery="true" class="mt-2">
+<form method="post" data-ajax="true" data-ajax-method="post" data-ajax-url="/Chat/Sent" data-ajax-success="onMessageSent" class="mt-2">
     <div class="input-group">
         <input type="hidden" name="roomid" value="@Model.Id" />
         <textarea class="form-control" name="text" value="" placeholder="Type a message" required></textarea>

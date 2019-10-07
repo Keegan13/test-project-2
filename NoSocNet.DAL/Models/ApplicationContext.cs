@@ -64,8 +64,8 @@ namespace NoSocNet.DAL.Context
         protected virtual void ConfigureMessages(EntityTypeBuilder<MessageDto> entityTypeBuilder)
         {
             entityTypeBuilder.HasKey(x => x.Id);
-            entityTypeBuilder.HasOne(x => x.Sender).WithMany(x => x.Messages).HasForeignKey(x => x.SenderId);
-            entityTypeBuilder.HasIndex(x => x.SenderId);
+            entityTypeBuilder.HasOne(x => x.SenderUser).WithMany(x => x.Messages).HasForeignKey(x => x.SenderUserId);
+            entityTypeBuilder.HasIndex(x => x.SenderUserId);
 
         }
 
@@ -73,7 +73,7 @@ namespace NoSocNet.DAL.Context
         {
             entityTypeBuilder.HasKey(x => x.Id);
             entityTypeBuilder.HasMany(x => x.Messages).WithOne(x => x.ChatRoom).HasForeignKey(x => x.ChatRoomId);
-            entityTypeBuilder.HasOne(x => x.Owner).WithMany().HasForeignKey(x => x.OwnerId);
+            entityTypeBuilder.HasOne(x => x.OwnerUser).WithMany().HasForeignKey(x => x.OwnerUserId);
         }
     }
 }

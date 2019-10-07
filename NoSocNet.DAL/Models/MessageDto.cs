@@ -20,9 +20,9 @@ namespace NoSocNet.DAL.Models
 
         public virtual ChatRoomDto ChatRoom { get; set; }
 
-        public string SenderId { get; set; }
+        public string SenderUserId { get; set; }
 
-        public virtual User Sender { get; set; }
+        public virtual User SenderUser { get; set; }
 
         public ICollection<MessageReadByUserDto> ReadByUsers { get; set; }
     }

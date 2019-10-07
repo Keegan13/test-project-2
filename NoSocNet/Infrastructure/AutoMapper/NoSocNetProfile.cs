@@ -21,7 +21,7 @@ namespace NoSocNet.Infrastructure.AutoMapper
 
 
             CreateMap<Message<User, string>, MessageDto>()
-                .ForMember(x => x.Sender, opt => opt.MapFrom(g => g.Sender))
+                .ForMember(x => x.SenderUser, opt => opt.MapFrom(g => g.Sender))
                 .ForMember(x => x.ChatRoom, opt => opt.MapFrom(e => e.ChatRoom));
 
             CreateMap<Message<User, string>, MessageViewModel>()
