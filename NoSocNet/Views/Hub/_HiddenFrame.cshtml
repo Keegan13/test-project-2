@@ -43,8 +43,9 @@
                 try {
                     xhr.send(encodeURI('connectionId=' + _connectionId));
                 }
-                catch
+                catch (error)
                 {
+                    console.log(error);
                     _send();
                 }
             }

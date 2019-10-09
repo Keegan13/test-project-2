@@ -92,7 +92,7 @@ img {
     display: none;
 }
 
-.chat-tab-link {
+.chat-tab-link, .chat-tab-user-link {
     text-overflow: ellipsis;
     text-align: left !important;
     overflow: hidden;

@@ -7,11 +7,13 @@ using System.Threading.Tasks;
 
 namespace NoSocNet.BLL.Abstractions.Repositories
 {
-    public interface IRoomRepositoryStore<TUser, TKey>
+    public interface IChatRoomRepository<TUser, TKey>
     {
+        Task<ChatRoom<TUser, TKey>> GetRoom(string roomId);
         Task<ChatRoom<TUser, TKey>> GetPrivateRoom(TKey firstUserId, TKey secondUserId);
-        Task<ChatRoom<TUser, TKey>> CreatePrivateRoom(TKey firstUserId, TKey secondUserId);
-        Task<PagedList<ChatRoom<TUser, TKey>>> GetRoomsByUserAsync(TKey userId, FilterBase filter = null, Paginator pagination = null);
+        Task CreatePrivateRoom(TKey firstUserId, TKey secondUserId);
+        Task<PagedList<ChatRoom<TUser, TKey>>> GetRoomsAsync(TKey currentUserId, FilterBase filter = null, Paginator pagination = null);
+        Task AddUserToRoom(string userId, string roomId);
     }
 
 
@@ -25,9 +27,10 @@ namespace NoSocNet.BLL.Abstractions.Repositories
         }
         public PagedList(IEnumerable<T> items, int totalCount)
         {
-            this.Items = items;
+            this.Items = items.ToArray();
             this.TotalCount = totalCount;
         }
+
 
         public FilterBase Filter { get; set; }
 
@@ -53,6 +56,8 @@ namespace NoSocNet.BLL.Abstractions.Repositories
 
     public class Paginator
     {
+        public string TailId { get; set; }
+
         public int Page { get; set; } = 1;
 
         public int PageSize { get; set; } = 10;

@@ -4,11 +4,11 @@ using System.Text;
 
 namespace NoSocNet.DAL.Models
 {
-    public class MessageDto
+    public class MessageEntity
     {
-        public MessageDto()
+        public MessageEntity()
         {
-            this.ReadByUsers = new HashSet<MessageReadByUserDto>();
+            this.ReadByUsers = new HashSet<MessageReadByUserEntity>();
         }
         public int Id { get; set; }
 
@@ -18,12 +18,12 @@ namespace NoSocNet.DAL.Models
 
         public string ChatRoomId { get; set; }
 
-        public virtual ChatRoomDto ChatRoom { get; set; }
+        public virtual ChatRoomEntity ChatRoom { get; set; }
 
         public string SenderUserId { get; set; }
 
         public virtual User SenderUser { get; set; }
 
-        public ICollection<MessageReadByUserDto> ReadByUsers { get; set; }
+        public ICollection<MessageReadByUserEntity> ReadByUsers { get; set; }
     }
 }

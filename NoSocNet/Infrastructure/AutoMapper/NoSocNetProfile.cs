@@ -13,14 +13,14 @@ namespace NoSocNet.Infrastructure.AutoMapper
     {
         public NoSocNetProfile()
         {
-            CreateMap<ChatRoomDto, ChatRoom<User, string>>()
+            CreateMap<ChatRoomEntity, ChatRoom<User, string>>()
                 .ForMember(x => x.Participants, opt => opt.MapFrom(g => g.UserRooms));
 
-            CreateMap<UsersChatRoomsDto, User>()
+            CreateMap<UsersChatRoomsEntity, User>()
                 .ConstructUsing(x => x.User);
 
 
-            CreateMap<Message<User, string>, MessageDto>()
+            CreateMap<Message<User, string>, MessageEntity>()
                 .ForMember(x => x.SenderUser, opt => opt.MapFrom(g => g.Sender))
                 .ForMember(x => x.ChatRoom, opt => opt.MapFrom(e => e.ChatRoom));
 

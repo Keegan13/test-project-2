@@ -10,6 +10,7 @@ namespace NoSocNet.Infrastructure.Repositories
     public class UserRepository : IUserRepository<User, string>
     {
         private readonly DbContext context;
+        private DbSet<User> Users => context.Set<User>();
 
         public UserRepository(DbContext context)
         {
@@ -17,8 +18,7 @@ namespace NoSocNet.Infrastructure.Repositories
         }
         public async Task<PagedList<User>> GetPrivateRoomSuplementAsync(string userId, FilterBase filter = null, Paginator pagination = null)
         {
-            var query = context
-                .Set<User>()
+            var query = Users
                 .Where(x => x.Id != userId && x.UserRooms.Where(ur => ur.ChatRoom.IsPrivate).All(ur => !ur.ChatRoom.UserRooms.Any(r => r.UserId == userId)));
 
             query = ApplyFilter(query, filter);
@@ -38,11 +38,9 @@ namespace NoSocNet.Infrastructure.Repositories
                     Page = 1,
                     PageSize = 10,
                     SortColumn = "",
-                    SortOrder = SortOrder.Descending
+                    SortOrder = SortOrder.Descending,
                 };
             }
-
-            //ToDo: OrderByColumnName extesniosn method
 
             query = query
                     .Skip((paginator.Page - 1) * paginator.PageSize)
@@ -59,6 +57,34 @@ namespace NoSocNet.Infrastructure.Repositories
             }
 
             return query;
+        }
+
+        public async Task<User> GetByIdAsync(string userId)
+        {
+            var user = await this.Users.FindAsync(userId);
+
+            return user;
+        }
+
+        public async Task<bool> Exists(string userId)
+        {
+            var doesExists = await this.Users.AnyAsync(x => x.Id == userId);
+
+            return doesExists;
+        }
+
+        public async Task<PagedList<User>> GetRoomUserSuplementAsync(string userId, string roomId, FilterBase filter = null, Paginator paginator = null)
+        {
+            var query = Users
+                .Where(x => x.Id != userId)
+                .Where(x => x.UserRooms.All(ur => ur.ChatRoomId != roomId));
+
+            query = ApplyFilter(query, filter);
+            int count = await query.CountAsync();
+            query = ApplyPagination(query, paginator);
+            var data = await query.ToListAsync();
+
+            return new PagedList<User>(data, count, filter, paginator);
         }
     }
 }

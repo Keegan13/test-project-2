@@ -2,7 +2,7 @@
 
 namespace NoSocNet.DAL.Models
 {
-    public class MessageReadByUserDto
+    public class MessageReadByUserEntity
     {
         public string UserId { get; set; }
 
@@ -10,7 +10,7 @@ namespace NoSocNet.DAL.Models
 
         public int MessageId { get; set; }
 
-        public MessageDto Message { get; set; }
+        public MessageEntity Message { get; set; }
 
         public DateTime? DateRead { get; set; }
     }

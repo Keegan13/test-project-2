@@ -3,14 +3,17 @@
     Layout = null;
 }
 
-
 @if (Model.Users.Count() == 0)
 {
     <h3>No one to invite</h3>
 }
 else
 {
-    <h4>Invite people to room @Model.RoomName</h4>
+    <h4 style="width: 100px;
+    text-overflow: ellipsis;
+    white-space: nowrap;">
+        Invite people to room @Model.RoomName
+    </h4>
     <form method="post" data-ajax="true" data-ajax-method="post" data-ajax-url="/Chat/Invite" data-ajax-update="#chat@(Model.RoomId)" data-ajax-mode="replaceWith" data-ajax-complete="clearModal" asp-antiforgery="true">
         <input hidden="hidden" name="roomId" value="@Model.RoomId" />
         <div class="form-group">

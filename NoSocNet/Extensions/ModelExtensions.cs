@@ -2,9 +2,7 @@
 using NoSocNet.DAL.Models;
 using NoSocNet.Models;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace NoSocNet.Extensions
 {
@@ -12,7 +10,7 @@ namespace NoSocNet.Extensions
     {
         public static string GetRoomName(this ChatRoomViewModel room, string currentUserId)
         {
-            if (!String.IsNullOrEmpty(room.RoomName))
+            if (!String.IsNullOrWhiteSpace(room.RoomName))
             {
                 return room.RoomName;
             }
@@ -20,25 +18,38 @@ namespace NoSocNet.Extensions
             if (room.IsPrivate)
             {
                 var name = room.Participants.FirstOrDefault(x => x.Id != currentUserId)?.UserName;
-                return "Empty Chat";
+
+                if (String.IsNullOrWhiteSpace(name))
+                {
+                    name = " Empty Chat";
+                }
+
+                return name;
             }
 
-            return room.Participants.Where(x => x.Id != currentUserId).Aggregate("# ", (agg, next) => agg += next.UserName + ", ").Trim(' ', ',');
+            return String.Format(" # ({1}) {0}", room.Participants.Where(x => x.Id != currentUserId).Aggregate("", (agg, next) => agg += next.UserName + ", ").Trim(' ', ','), room.Participants.Count());
         }
 
         public static string GetRoomName(this ChatRoom<User, string> room, string currentUserId)
         {
-            if (!String.IsNullOrEmpty(room.RoomName))
+            if (!String.IsNullOrWhiteSpace(room.RoomName))
             {
                 return room.RoomName;
             }
 
             if (room.IsPrivate)
             {
-                return room.Participants.FirstOrDefault(x => x.Id != currentUserId)?.UserName;
+                var name = room.Participants.FirstOrDefault(x => x.Id != currentUserId)?.UserName;
+
+                if (String.IsNullOrWhiteSpace(name))
+                {
+                    name = "E mpty Chat";
+                }
+
+                return name;
             }
 
-            return room.Participants.Where(x => x.Id != currentUserId).Aggregate("# ", (agg, next) => agg += next.UserName + ", ").Trim(' ', ',');
+            return String.Format(" # ({1}) {0}", room.Participants.Where(x => x.Id != currentUserId).Aggregate("", (agg, next) => agg += next.UserName + ", ").Trim(' ', ','), room.Participants.Count());
         }
 
     }

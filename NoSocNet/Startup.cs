@@ -58,18 +58,16 @@ namespace NoSocNet
             services.AddHttpContextAccessor();
 
             services.AddScoped<DbContext, ApplicationDbContext>(factory => factory.GetRequiredService<ApplicationDbContext>());
-
-            services.AddScoped<IRoomRepositoryStore<User, string>, RoomRepository>();
+            services.AddScoped<IUnitOfWork, EFCoreUnitOfWork>();
+            services.AddScoped<IChatRoomRepository<User, string>, RoomRepository>();
             services.AddScoped<IUserRepository<User, string>, UserRepository>();
-            services.AddScoped<IMessageRepository<string>, MessageRepository>();
-
+            services.AddScoped<IMessageRepository<User, string>, MessageRepository>();
             services.AddSingleton<ApplicationNotificator>();
 
             services.AddTransient<MessageObserver>();
             services.AddSingleton(factory => factory.GetRequiredService<ApplicationNotificator>() as INotificator<string>);
 
             services.AddScoped<IIdentityService<User>, IdentityService>();
-            services.AddScoped<IApplicationUserStore<User>, ApplicationUserStore>();
             services.AddScoped<IChatService<User, string>, ChatService>();
 
             services.AddDefaultIdentity<User>()

@@ -70,12 +70,12 @@ img {
 #hidden {
   display: none; }
 
-.chat-tab-link {
+.chat-tab-link, .chat-tab-user-link {
   text-overflow: ellipsis;
   text-align: left !important;
   overflow: hidden;
   white-space: nowrap; }
-  .chat-tab-link.private {
+  .chat-tab-link.private, .chat-tab-user-link.private {
     color: red; }
 
 .updated {

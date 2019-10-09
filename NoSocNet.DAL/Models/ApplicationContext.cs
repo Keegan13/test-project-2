@@ -7,11 +7,11 @@ namespace NoSocNet.DAL.Context
 {
     public class ApplicationDbContext : IdentityDbContext<User>
     {
-        public virtual DbSet<ChatRoomDto> ChatRooms { get; set; }
-        public virtual DbSet<MessageDto> Messages { get; set; }
-        public virtual DbSet<UsersChatRoomsDto> UsersRooms { get; set; }
+        public virtual DbSet<ChatRoomEntity> ChatRooms { get; set; }
+        public virtual DbSet<MessageEntity> Messages { get; set; }
+        public virtual DbSet<UsersChatRoomsEntity> UsersRooms { get; set; }
 
-        public virtual DbSet<MessageReadByUserDto> MessagesReadBy { get; set; }
+        public virtual DbSet<MessageReadByUserEntity> MessagesReadBy { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -22,13 +22,13 @@ namespace NoSocNet.DAL.Context
         {
             base.OnModelCreating(builder);
 
-            ConfigureMessages(builder.Entity<MessageDto>());
-            ConfigureChatRooms(builder.Entity<ChatRoomDto>());
-            ConfigureUserRooms(builder.Entity<UsersChatRoomsDto>());
-            ConfigureMessageRead(builder.Entity<MessageReadByUserDto>());
+            ConfigureMessages(builder.Entity<MessageEntity>());
+            ConfigureChatRooms(builder.Entity<ChatRoomEntity>());
+            ConfigureUserRooms(builder.Entity<UsersChatRoomsEntity>());
+            ConfigureMessageRead(builder.Entity<MessageReadByUserEntity>());
         }
 
-        protected virtual void ConfigureUserRooms(EntityTypeBuilder<UsersChatRoomsDto> entityTypeBuilder)
+        protected virtual void ConfigureUserRooms(EntityTypeBuilder<UsersChatRoomsEntity> entityTypeBuilder)
         {
             entityTypeBuilder.HasKey(x => new { x.UserId, x.ChatRoomId });
             entityTypeBuilder
@@ -42,7 +42,7 @@ namespace NoSocNet.DAL.Context
                 .HasForeignKey(ur => ur.UserId);
         }
 
-        protected virtual void ConfigureMessageRead(EntityTypeBuilder<MessageReadByUserDto> entityTypeBuilder)
+        protected virtual void ConfigureMessageRead(EntityTypeBuilder<MessageReadByUserEntity> entityTypeBuilder)
         {
             entityTypeBuilder.HasKey(x => new { x.UserId, x.MessageId });
 
@@ -61,7 +61,7 @@ namespace NoSocNet.DAL.Context
                 .HasDefaultValueSql("getdate()");
         }
 
-        protected virtual void ConfigureMessages(EntityTypeBuilder<MessageDto> entityTypeBuilder)
+        protected virtual void ConfigureMessages(EntityTypeBuilder<MessageEntity> entityTypeBuilder)
         {
             entityTypeBuilder.HasKey(x => x.Id);
             entityTypeBuilder.HasOne(x => x.SenderUser).WithMany(x => x.Messages).HasForeignKey(x => x.SenderUserId);
@@ -69,7 +69,7 @@ namespace NoSocNet.DAL.Context
 
         }
 
-        protected virtual void ConfigureChatRooms(EntityTypeBuilder<ChatRoomDto> entityTypeBuilder)
+        protected virtual void ConfigureChatRooms(EntityTypeBuilder<ChatRoomEntity> entityTypeBuilder)
         {
             entityTypeBuilder.HasKey(x => x.Id);
             entityTypeBuilder.HasMany(x => x.Messages).WithOne(x => x.ChatRoom).HasForeignKey(x => x.ChatRoomId);

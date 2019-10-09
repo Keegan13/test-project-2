@@ -4,12 +4,12 @@ using System.Text;
 
 namespace NoSocNet.DAL.Models
 {
-    public class ChatRoomDto
+    public class ChatRoomEntity
     {
-        public ChatRoomDto()
+        public ChatRoomEntity()
         {
-            this.UserRooms = new HashSet<UsersChatRoomsDto>();
-            this.Messages = new HashSet<MessageDto>();
+            this.UserRooms = new HashSet<UsersChatRoomsEntity>();
+            this.Messages = new HashSet<MessageEntity>();
         }
 
         public string Id { get; set; }
@@ -20,7 +20,7 @@ namespace NoSocNet.DAL.Models
 
         public User OwnerUser { get; set; }
         public string OwnerUserId { get; set; }
-        public virtual ICollection<MessageDto> Messages { get; set; }
-        public virtual ICollection<UsersChatRoomsDto> UserRooms { get; set; }
+        public virtual ICollection<MessageEntity> Messages { get; set; }
+        public virtual ICollection<UsersChatRoomsEntity> UserRooms { get; set; }
     }
 }

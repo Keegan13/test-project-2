@@ -27,7 +27,7 @@ namespace NoSocNet.BLL.Models
         public virtual TUser Sender { get; set; }
 
 
-        public IList<TUser> ReadByUsers { get; set; }
+        public IEnumerable<TUser> ReadByUsers { get; set; }
         public bool HasUnread { get; set; } = false;
     }
 }
