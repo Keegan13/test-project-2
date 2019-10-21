@@ -75,7 +75,7 @@
 
         $(e.target).removeClass("updated");
         let tabId = $(e.target).attr("aria-controls");
-        var regex = /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/g;
+        var regex = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/g;
         let roomId = regex.exec(tabId);
 
         //notify that current user have read all messages in current chat room
@@ -94,9 +94,12 @@
     });
 
     $(document).on('chat.on.message', ".chat-messages", function (e) {
-        setTimeout(() => {
-            $(this).scrollTop(10000000);
-        }, 100)
+        let scrollHeight = 0;
+        $(this).children().each(function () {
+            scrollHeight = scrollHeight + $(this).outerHeight(true);
+        });
+        console.log('scrolling with height: ' + scrollHeight);
+        $(this).scrollTop(scrollHeight);
 
         if (!e.message) return;
         let chatTab = $(`a#chat${e.message.chatRoomId}-tab`);
@@ -105,10 +108,21 @@
         }
     });
 
+    //$('.chat-messages').on('scroll', function (e) {
+    //    console.log('scroll event');
+    //});
+    $(document).on('scroll', '.chat-messages', function (e) {
+        console.log('catching scroll event');
+        //let position = $(e.target).scrollTop();
+        //if (position < 200) {
+
+        //}
+        //console.log();
+    });
 
     $("#search-chats-form").on('change', function (e) {
         if (e.target.value == "") {
-            $(".chat-tab-link").show();
+            $(".chat-tab-link.restore").removeClass("restore").show();
         }
     });
 })();
@@ -147,6 +161,32 @@ function onNewParticipants(content) {
     console.log(content);
 }
 
+function remove(element) {
+    $(element).remove();
+}
+
+function onLoadMoreMessages(data) {
+
+    if (data && data.length > 0) {
+
+        // inserst messages
+        let content = data.reduce((agg, next) => agg += renderMessage(next), '');
+        $(content).insertAfter(this);
+
+        //change the tail id
+        let tailId = data[0].id;
+        let url = $(this).attr('data-ajax-url');
+        console.log(url);
+        $(this).attr('data-ajax-url', url.replace(/tail=([0-9]+)/gi, () => ('tail=' + tailId.toString())));
+    }
+    if (data.length == 0) {
+        $(this).remove();
+        alert('no more messages');
+    }
+
+
+}
+
 function onLoadUsers(data) {
     if (data && data.length > 0) {
         //insert tab link
@@ -155,7 +195,19 @@ function onLoadUsers(data) {
         }).reduce((curr, next) => curr += next);
 
         $(html).insertBefore("#more-users-btn");
+
+
+
+        let url = $('#more-users-btn').attr('data-ajax-url');
+        let tailId = data[data.length - 1].id;
+        $(this).attr('data-ajax-url', url.replace(/tail=(.*)/gi, () => ('tail=' + tailId.toString())));
     }
+
+    if (data.length == 0) {
+        $(this).remove();
+        alert('no more users');
+    }
+
 }
 
 function container() {
@@ -164,6 +216,10 @@ function container() {
 
 function tabLink() {
     return $('#nav-tab');
+}
+
+function getCurrentUser() {
+    return $.currentUserId;
 }
 
 function appendChatLinkTo(element, chat) {
@@ -184,7 +240,7 @@ function appendChat(chat) {
     const tabContainer = container();
     const tabLinkContainer = tabLink();
 
-    let userIdregex = /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/g;
+    let userIdregex = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/g;
 
     //remove any link to user
     //tabLinkContainer.find("a[data-ajax-url]").filter((idx, item) => {
@@ -202,15 +258,22 @@ function appendChat(chat) {
     };
 }
 
+function renderMessage(msg) {
+    let senderCls = getCurrentUser() === msg.senderId ? 'outcomming' : 'incomming';
+    return `<div class="alert alert-primary ${senderCls}" role="alert"><p>${msg.text}</p><hr><p class="message-info"><span class="message-date">${msg.sendDate}</span> ${msg.senderUserName}</p></div>`;
+}
 function appenMessageTo(chatTab, msg) {
     msg.sendDate = moment(new Date(msg.sendDate)).format("YYYY-MM-DD hh:mm");
-    let senderCls = $.currentUserId === msg.senderId ? 'outcomming' : 'incomming';
-    $(`<div class="alert alert-primary ${senderCls}" role="alert"><p>${msg.text}</p><hr><p class="message-info"><span class="message-date">${msg.sendDate}</span> ${msg.senderUserName}</p></div>`).appendTo(chatTab);
+
+    $(renderMessage(msg)).appendTo(chatTab)
     $(chatTab).trigger({
         type: 'chat.on.message',
         message: msg
     });
 }
+
+
+
 
 function appenMessage(msg) {
     var chatTabsContainer = container();
@@ -292,7 +355,7 @@ function onLoadChats(data) {
 }
 
 function onChatSearch(data) {
-    $(".chat-tab-link").hide();
+    $(".chat-tab-link").addClass("restore").hide();
     if (data && data.length > 0) {
         data.forEach(function (item) {
             appendChat(item);

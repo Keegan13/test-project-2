@@ -57,7 +57,6 @@ namespace NoSocNet.Controllers
             return Ok();
         }
 
-
         [HttpGet]
         public async Task<IActionResult> Index(string roomId = null)
         {
@@ -76,15 +75,11 @@ namespace NoSocNet.Controllers
                     HasUnread = x.HasUnread
                 });
 
-            var users = (await userRepo.GetPrivateRoomSuplementAsync(userId))
-                .Items
-                .Select(x => new UserViewModel
-                {
-                    Id = x.Id,
-                    Email = x.Email,
-                    UserName = x.UserName
-                })
-                .OrderBy(x => x.UserName);
+            var currentUserId = identity.CurrentUserId;
+            var data = await userRepo.GetPrivateRoomSuplementAsync(currentUserId, new FilterBase
+            {
+                CurrentUserId=currentUserId
+            }, new Paginator { PageSize = 5 });
 
             if (!String.IsNullOrEmpty(roomId) && rooms.Any(x => x.Id == roomId))
             {
@@ -93,27 +88,41 @@ namespace NoSocNet.Controllers
 
             return View(new IndexViewModel
             {
+                UsersPage = new PagedList<UserViewModel>(data.Items.Select(x => mapper.Map<UserViewModel>(x)), data.TotalCount, data.Filter, data.Pagination),
                 Rooms = rooms,
-                Users = users
             });
         }
 
         public async Task<IActionResult> Invite(string id)
         {
-            var currUserId = identity.CurrentUserId;
-            IList<User> users = (await this.userRepo.GetRoomUserSuplementAsync(currUserId, id)).Items.ToList();
+            PagedList<User> rawUsers = (await this.userRepo.ListAsync(
+                new FilterBase
+                {
+                    ChatRoomId = id,
+                    Type = BLL.Enums.ParticipantsType.NonParticipant
+                },
+                new Paginator
+                {
+                    Page = 1,
+                    PageSize = 10,
+                    SortColumn = "Email",
+                    SortOrder = BLL.Enums.SortOrder.Ascending
+                }
+            ));
+
 
             ChatRoom<User, string> chatRoom = await this.roomRepo.GetRoom(id);
 
-            if (users != null && chatRoom != null)
+            if (rawUsers != null && chatRoom != null)
             {
-                var model = new InviteViewModel
+                var model = new InviteUsersViewModel
                 {
                     RoomName = chatRoom.GetRoomName(identity.CurrentUserId),
+                    Page = rawUsers.Pagination.Page,
+                    TotalCount = rawUsers.TotalCount,
+                    PageSize = rawUsers.Pagination.PageSize,
                     RoomId = id,
-                    Users = users
-                        .Where(x => !chatRoom.Participants.Select(ps => ps.Id).Contains(x.Id))
-                        .Select(x => mapper.Map<UserViewModel>(x))
+                    Users = rawUsers.Items.Select(x => mapper.Map<UserViewModel>(x)).ToList()
                 };
 
                 return PartialView("_InviteUsers", model);
@@ -150,6 +159,27 @@ namespace NoSocNet.Controllers
             return PartialView("_chat", model);
         }
 
+
+        [HttpPost]
+        public async Task<IActionResult> InviteList(UserFilterModel filter)
+        {
+            var result = await userRepo.ListAsync(new FilterBase
+            {
+                ChatRoomId = filter.ChatRoomId,
+                Keywords = filter.Keywords,
+                Type = NoSocNet.BLL.Enums.ParticipantsType.NonParticipant,
+
+            },
+            new Paginator
+            {
+                Page = filter.Page > 0 ? filter.Page : 0,
+                PageSize = filter.PageSize > 0 ? filter.PageSize : 10
+            });
+
+            var model = result.Items.Select(x => mapper.Map<UserViewModel>(x)).ToList();
+
+            return PartialView("_userSelectList", model);
+        }
         [HttpPost]
         //[ValidateAntiForgeryToken]
         public async Task<IActionResult> Sent(string text, string roomId)

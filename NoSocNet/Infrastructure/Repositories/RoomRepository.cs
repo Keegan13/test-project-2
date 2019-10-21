@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NoSocNet.BLL.Abstractions.Repositories;
+using NoSocNet.BLL.Enums;
 using NoSocNet.BLL.Models;
 using NoSocNet.DAL.Models;
 using System;

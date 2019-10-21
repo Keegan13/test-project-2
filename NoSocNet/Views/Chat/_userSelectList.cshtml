@@ -1,0 +1,9 @@
+﻿@model IEnumerable<UserViewModel>
+@{
+    Layout = null;
+}
+
+@foreach (var item in Model)
+{
+    <option value="@item.Id">@item.UserName</option>
+}

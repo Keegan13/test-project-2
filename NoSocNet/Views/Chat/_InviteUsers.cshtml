@@ -1,4 +1,4 @@
-﻿@model InviteViewModel
+﻿@model InviteUsersViewModel
 @{
     Layout = null;
 }
@@ -14,10 +14,16 @@ else
     white-space: nowrap;">
         Invite people to room @Model.RoomName
     </h4>
+    <form id="invite-users-filter" method="post" data-ajax="true" data-ajax-method="post" data-ajax-update="#invite-user-list" data-ajax-mode="replaceWith" data-ajax-url="/chat/InviteList">
+        <input type="hidden" name="roomid" value="@Model.RoomId" />
+        <input type="text" name="keywords" />
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
     <form method="post" data-ajax="true" data-ajax-method="post" data-ajax-url="/Chat/Invite" data-ajax-update="#chat@(Model.RoomId)" data-ajax-mode="replaceWith" data-ajax-complete="clearModal" asp-antiforgery="true">
+
         <input hidden="hidden" name="roomId" value="@Model.RoomId" />
         <div class="form-group">
-            <select class="form-control" name="people" multiple="multiple">
+            <select class="form-control" name="people" multiple="multiple" id="invite-user-list">
                 @foreach (var user in Model.Users)
                 {
                     <option value="@user.Id">@user.UserName</option>

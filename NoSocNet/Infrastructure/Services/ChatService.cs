@@ -51,7 +51,7 @@ namespace NoSocNet.Infrastructure.Services
                 throw new ArgumentException("Same user error");
             }
 
-            if (!await this.userRepo.Exists(userId))
+            if (!await this.userRepo.ExistsAsync(userId))
             {
                 throw new ArgumentException("User does not exists");
             }

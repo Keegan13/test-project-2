@@ -1,19 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using NoSocNet.BLL.Models;
+using System;
 using System.Threading.Tasks;
 
 namespace NoSocNet.BLL.Abstractions.Repositories
 {
     public interface IUserRepository<TUser, TKey>
     {
-        Task<PagedList<TUser>> GetPrivateRoomSuplementAsync(TKey userId, FilterBase filter = null, Paginator paginator = null);
+        [Obsolete]
+        Task<PagedList<TUser>> GetPrivateRoomSuplementAsync(string userId, FilterBase filter = null, Paginator pagination = null);
 
-        Task<PagedList<TUser>> GetRoomUserSuplementAsync(TKey key, string roomId, FilterBase filter = null, Paginator paginator = null);
+        Task<PagedList<TUser>> ListAsync(FilterBase filter, Paginator paginator);
 
         Task<TUser> GetByIdAsync(TKey userId);
 
-        Task<bool> Exists(TKey userId);
+        Task<bool> ExistsAsync(TKey userId);
     }
 }
 

@@ -17,9 +17,9 @@
         <div>
             <nav class="chats-tabs">
                 <form method="post" id="search-chats-form" data-ajax="true" data-ajax-success="onChatSearch" data-ajax-url="/chat/rooms">
-                    <div class="form-group">
+                    <div class="form-group" style="display:flex;">
                         <input class="form-control" name="keywords" value="" />
-                        <button type="submit" class="">find</button>
+                        <button type="submit" class=""><i class="fa fa-search"></i></button>
                     </div>
                 </form>
 
@@ -33,7 +33,7 @@
                     }
 
                     <form data-ajax="true" data-ajax-success="onLoadChats" method="post" data-ajax-url="/chat/rooms" id="more-chats-form">
-                        <input type="hidden" name="tailId" value="@(Model.Users.LastOrDefault()?.Id)" />
+                        <input type="hidden" name="tailId" value="@(Model.Rooms.LastOrDefault()?.Id)" />
                         <button type="submit" class="btn">Load More</button>
                     </form>
 
@@ -45,7 +45,13 @@
                         </a>
                     }
 
-                    <a class="btn" id="more-users-btn" href="/" data-ajax="true" method="GET" data-ajax-success="onLoadUsers" data-ajax-url="@Url.Action("Get","Users",new {  tailId=Model.Users.LastOrDefault()?.Id })">
+                    <a class="btn"
+                       id="more-users-btn"
+                       href="/"
+                       data-ajax="true"
+                       method="GET"
+                       data-ajax-success="onLoadUsers"
+                       data-ajax-url="@Url.Action("Get","Users",new { tailId=Model.Users.LastOrDefault()?.Id })">
                         Load more
                     </a>
                 </div>
@@ -108,9 +114,11 @@
             $("#hidden").hub(config);
             $.currentUserId = "@identity.CurrentUserId";
 
-            $("form textarea").keypress(function (e) {
-                if (e.which == 13 && !e.shiftKey&&this.value.match(/[^\w\.\-]/)) {
+
+            $(document).on('keypress', 'form textarea', function (e) {
+                if (e.which == 13 && !e.shiftKey && this.value && this.value.trim().length>0) {
                     e.preventDefault();
+                    e.stopPropagation();
                     $(this).submit();
                 }
                 else {

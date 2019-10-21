@@ -1,7 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NoSocNet.BLL.Abstractions.Repositories;
+using NoSocNet.BLL.Enums;
+using NoSocNet.BLL.Models;
 using NoSocNet.DAL.Models;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,6 +19,10 @@ namespace NoSocNet.Infrastructure.Repositories
         {
             this.context = context;
         }
+
+        [Obsolete]
+
+        //ToDo: change or let it stay
         public async Task<PagedList<User>> GetPrivateRoomSuplementAsync(string userId, FilterBase filter = null, Paginator pagination = null)
         {
             var query = Users
@@ -29,19 +36,33 @@ namespace NoSocNet.Infrastructure.Repositories
             return new PagedList<User>(data, count, filter, pagination);
         }
 
-        private IQueryable<User> ApplyPagination(IQueryable<User> query, Paginator paginator)
+        public async Task<PagedList<User>> ListAsync(FilterBase filter, Paginator paginator)
         {
-            if (paginator == null)
+            IQueryable<User> query = Users.AsQueryable();
+            query = ApplyFilter(query, filter);
+            int count = await query.CountAsync();
+
+            if (!String.IsNullOrWhiteSpace(paginator.TailId))
             {
-                paginator = new Paginator
-                {
-                    Page = 1,
-                    PageSize = 10,
-                    SortColumn = "",
-                    SortOrder = SortOrder.Descending,
-                };
+                string[] ids = await query.Select(x => x.Id).ToArrayAsync();
+                int skip = Array.IndexOf(ids, paginator.TailId);
+                skip = skip > 0 ? skip + 1 : 0;
+                query = query.Skip(skip)
+                    .Take(paginator?.PageSize > 0 ? paginator.PageSize : 10);
+            }
+            else
+            {
+                //simple pagination here
+                query = ApplyPagination(query, paginator);
             }
 
+            List<User> data = await query.ToListAsync();
+
+            return new PagedList<User>(data, count, filter, paginator);
+        }
+
+        private IQueryable<User> ApplyPagination(IQueryable<User> query, Paginator paginator)
+        {
             query = query
                     .Skip((paginator.Page - 1) * paginator.PageSize)
                     .Take(paginator.PageSize);
@@ -51,9 +72,30 @@ namespace NoSocNet.Infrastructure.Repositories
 
         private IQueryable<User> ApplyFilter(IQueryable<User> query, FilterBase filter)
         {
-            if (!String.IsNullOrEmpty(filter?.Keywords))
+            if (!String.IsNullOrWhiteSpace(filter.ChatRoomId))
             {
-                query = query.Where(x => x.UserName.Contains(filter.Keywords));
+
+                switch (filter.Type)
+                {
+                    case ParticipantsType.Participant:
+                        query = query.Where(x => x.UserRooms.Any(ur => ur.ChatRoomId == filter.ChatRoomId));
+                        break;
+                    case ParticipantsType.NonParticipant:
+                        query = query.Where(x => x.UserRooms.All(ur => ur.ChatRoomId != filter.ChatRoomId));
+                        break;
+                    default:
+                        if (!String.IsNullOrWhiteSpace(filter.CurrentUserId))
+                        {
+                            query = query.Where(x => x.Id != filter.CurrentUserId && x.UserRooms.Where(ur => ur.ChatRoom.IsPrivate).All(ur => !ur.ChatRoom.UserRooms.Any(r => r.UserId == filter.CurrentUserId)));
+                        }
+                        break;
+                }
+
+            }
+
+            if (!String.IsNullOrWhiteSpace(filter.Keywords))
+            {
+                query = query.Where(x => x.Email.Contains(filter.Keywords) || x.UserName.Contains(filter.Keywords));
             }
 
             return query;
@@ -66,25 +108,11 @@ namespace NoSocNet.Infrastructure.Repositories
             return user;
         }
 
-        public async Task<bool> Exists(string userId)
+        public async Task<bool> ExistsAsync(string userId)
         {
             var doesExists = await this.Users.AnyAsync(x => x.Id == userId);
 
             return doesExists;
-        }
-
-        public async Task<PagedList<User>> GetRoomUserSuplementAsync(string userId, string roomId, FilterBase filter = null, Paginator paginator = null)
-        {
-            var query = Users
-                .Where(x => x.Id != userId)
-                .Where(x => x.UserRooms.All(ur => ur.ChatRoomId != roomId));
-
-            query = ApplyFilter(query, filter);
-            int count = await query.CountAsync();
-            query = ApplyPagination(query, paginator);
-            var data = await query.ToListAsync();
-
-            return new PagedList<User>(data, count, filter, paginator);
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using NoSocNet.DAL.Context;
 using NoSocNet.DAL.Models;
 using NoSocNet.Infrastructure.Seeding;
@@ -30,6 +31,20 @@ namespace NoSocNet.Controllers
         {
             return View();
         }
+
+        public async Task<IActionResult> FixDb()
+        {
+
+            var chatrooms = await context.ChatRooms.Where(x => x.UserRooms.Count() <= 1).ToListAsync();
+            var roomsId = chatrooms.Select(x => x.Id).ToList();
+            var messages = await context.Messages.Where(x => roomsId.Contains(x.ChatRoomId)).ToListAsync();
+            context.RemoveRange(messages);
+            context.RemoveRange(chatrooms);
+            await context.SaveChangesAsync();
+
+            return RedirectToAction("Index");
+        }
+
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

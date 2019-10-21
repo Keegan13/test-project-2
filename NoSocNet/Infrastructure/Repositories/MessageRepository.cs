@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NoSocNet.BLL.Abstractions.Repositories;
+using NoSocNet.BLL.Enums;
 using NoSocNet.BLL.Models;
 using NoSocNet.DAL.Models;
 using System;
@@ -129,7 +130,7 @@ namespace NoSocNet.Infrastructure.Repositories
             var data = await context.Set<MessageEntity>()
                 .Include(x => x.SenderUser)
                 .Include(x => x.ReadByUsers)
-                .Where(x => x.ChatRoomId == roomId && x.Id > tailId)
+                .Where(x => x.ChatRoomId == roomId && x.Id < tailId)
                 .OrderByDescending(x => x.SendDate)
                 .Take(size)
                 .Select(x => new Message<User, string>
@@ -145,7 +146,7 @@ namespace NoSocNet.Infrastructure.Repositories
                 .ToListAsync();
 
 
-            return data;
+            return data.OrderBy(x => x.SendDate);
         }
 
         public async Task SetReadByUserAsync(string userId, string roomId, int? tillMessageId = null)
@@ -160,7 +161,8 @@ namespace NoSocNet.Infrastructure.Repositories
                 throw new ArgumentNullException(nameof(roomId));
             }
 
-            var query = context.Set<MessageEntity>().Where(x => x.ChatRoomId == roomId && x.ReadByUsers.All(rb => rb.UserId != userId));
+            var query = Messages
+                .Where(x => x.ChatRoomId == roomId && x.ReadByUsers.All(rb => rb.UserId != userId));
 
             if (tillMessageId.HasValue)
             {
@@ -168,6 +170,7 @@ namespace NoSocNet.Infrastructure.Repositories
             }
 
             var readMessages = await query.Select(x => x.Id).ToListAsync();
+
             var reads = readMessages
                 .Select(id => new MessageReadByUserEntity
                 {
