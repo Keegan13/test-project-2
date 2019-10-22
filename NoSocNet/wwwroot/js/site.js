@@ -322,7 +322,7 @@ var roomLinkTemplate = function (data) {
 
 var roomTemplate = function (data) {
     const { id, roomName } = data
-    return `<div class="tab-pane fade" id="chat${chat.id}" role="tabpanel" aria-labelledby="chat${chat.id}-tab"><div class="mb-3 mt-2"><h4 class="chat-heading d-inline-block align-middle">${chat.roomName}</h4><a data-ajax="true" class="btn btn-primary btn-invite d-inline-block align-middle float-right" data-ajax-success="partialModal" data-ajax-method="GET" data-ajax-url="/Chat/Invite/${chat.id}"><i class="fa fa-plus-circle"></i></a></div><div class="chat-messages"></div><form method="post" data-ajax="true" data-ajax-method="post" data-ajax-url="/Chat/Sent" data-ajax-success="onMessageSent" class="mt-2"><div class="input-group"><input type="hidden" name="roomid" value="${chat.id}"/><textarea class="form-control" name="text" value="" placeholder="Type a message" required></textarea><button type="submit" class="btn"><i class="fa fa-telegram" style="font-size:36px;color:cornflowerblue"></i></button></div></form></div>`;
+    return `<div class="tab-pane fade" id="chat${id}" role="tabpanel" aria-labelledby="chat${id}-tab"><div class="mb-3 mt-2"><h4 class="chat-heading d-inline-block align-middle">${roomName}</h4><a data-ajax="true" class="btn btn-primary btn-invite d-inline-block align-middle float-right" data-ajax-success="partialModal" data-ajax-method="GET" data-ajax-url="/Chat/Invite/${id}"><i class="fa fa-plus-circle"></i></a></div><div class="chat-messages"></div><form method="post" data-ajax="true" data-ajax-method="post" data-ajax-url="/Chat/Sent" data-ajax-success="onMessageSent" class="mt-2"><div class="input-group"><input type="hidden" name="roomid" value="${id}"/><textarea class="form-control" name="text" value="" placeholder="Type a message" required></textarea><button type="submit" class="btn"><i class="fa fa-telegram" style="font-size:36px;color:cornflowerblue"></i></button></div></form></div>`;
 }
 
 function renderTabLinksToString(data) {
@@ -353,9 +353,13 @@ function onLoadChats(data) {
 
     form.find("input[name='tailId']").val(last.id);
 
-    var html = renderTabLinksToString(data);
+    var linksHtml = renderTabLinksToString(data);
+    $(linksHtml).insertBefore(form);
 
-    $(html).insertBefore(form);
+
+    var tabsHtml = renderTabToString(data);
+    $(tabsHtml).appendTo(container());
+
 }
 
 function onChatSearch(data) {
