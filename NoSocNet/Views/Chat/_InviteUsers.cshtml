@@ -19,7 +19,7 @@ else
         <input type="text" name="keywords" />
         <button type="submit" class="btn btn-primary">Search</button>
     </form>
-    <form method="post" data-ajax="true" data-ajax-method="post" data-ajax-url="/Chat/Invite" data-ajax-update="#chat@(Model.RoomId)" data-ajax-mode="replaceWith" data-ajax-complete="clearModal" asp-antiforgery="true">
+    <form method="post" class="invite-form" data-ajax="true" data-ajax-method="post" data-ajax-url="/Chat/Invite" data-ajax-update="#chat@(Model.RoomId)" data-ajax-mode="replaceWith" data-ajax-complete="clearModal" asp-antiforgery="true">
 
         <input hidden="hidden" name="roomId" value="@Model.RoomId" />
         <div class="form-group">

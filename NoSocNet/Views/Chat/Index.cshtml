@@ -19,12 +19,12 @@
                 <form method="post" id="search-chats-form" data-ajax="true" data-ajax-success="onChatSearch" data-ajax-url="/chat/rooms">
                     <div class="form-group" style="display:flex;">
                         <input class="form-control" name="keywords" value="" />
-                        <button type="submit" class=""><i class="fa fa-search"></i></button>
+                        <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
                     </div>
                 </form>
-
-                <div class="nav nav-tabs nav-fill" id="nav-tab" role="tablist">
-                    @foreach (var item in Model.Rooms)
+                <div class="chat-tab-links scrollable">
+                    <div class="nav nav-tabs nav-fill" id="nav-tab" role="tablist">
+                        @foreach (var item in Model.Rooms)
                     {
                         <a class="nav-item nav-link w-100 chat-tab-link @(item.Id==selectedId?"active":"") @(item.HasUnread?"updated":"")" id="chat@(item.Id)-tab" data-toggle="tab" href="#chat@(item.Id)" role="tab" aria-controls="chat@(item.Id)" aria-selected="@(item.Id==selectedId?"true":"false")">
                             <i class="fa @(item.IsPrivate?"fa fa-user":"fa fa-users")"></i>
@@ -32,12 +32,12 @@
                         </a>
                     }
 
-                    <form data-ajax="true" data-ajax-success="onLoadChats" method="post" data-ajax-url="/chat/rooms" id="more-chats-form">
-                        <input type="hidden" name="tailId" value="@(Model.Rooms.LastOrDefault()?.Id)" />
-                        <button type="submit" class="btn">Load More</button>
-                    </form>
+                        <form data-ajax="true" data-ajax-success="onLoadChats" method="post" data-ajax-url="/chat/rooms" id="more-chats-form">
+                            <input type="hidden" name="tailId" value="@(Model.Rooms.LastOrDefault()?.Id)" />
+                            <button type="submit" class="btn" style="margin: auto;font-size: small;width: 100%;">Load More</button>
+                        </form>
 
-                    @foreach (var user in Model.Users)
+                        @foreach (var user in Model.Users)
                     {
                         <a class="nav-item nav-link w-100 chat-tab-user-link" href="/" data-ajax="true" method="GET" data-ajax-success="onNewChatSuccess" data-ajax-url="@Url.Action("Private","Chat",new {  user.Id })">
                             <i class="fa fa-plus"></i>
@@ -45,15 +45,17 @@
                         </a>
                     }
 
-                    <a class="btn"
-                       id="more-users-btn"
-                       href="/"
-                       data-ajax="true"
-                       method="GET"
-                       data-ajax-success="onLoadUsers"
-                       data-ajax-url="@Url.Action("Get","Users",new { tailId=Model.Users.LastOrDefault()?.Id })">
-                        Load more
-                    </a>
+                        <a class="btn"
+                           style="margin: auto;font-size: small;width: 100%;"
+                           id="more-users-btn"
+                           href="/"
+                           data-ajax="true"
+                           method="GET"
+                           data-ajax-success="onLoadUsers"
+                           data-ajax-url="@Url.Action("Get","Users",new { tailId=Model.Users.LastOrDefault()?.Id })">
+                            Load more
+                        </a>
+                    </div>
                 </div>
             </nav>
         </div>
@@ -62,7 +64,7 @@
         <div class="tab-content" id="nav-tabContent">
             @foreach (var item in Model.Rooms)
             {
-                <partial name="_chatTab" model="item" />
+            <partial name="_chatTab" model="item" />
             }
         </div>
     </div>

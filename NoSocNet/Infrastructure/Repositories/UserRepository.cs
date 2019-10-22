@@ -23,17 +23,32 @@ namespace NoSocNet.Infrastructure.Repositories
         [Obsolete]
 
         //ToDo: change or let it stay
-        public async Task<PagedList<User>> GetPrivateRoomSuplementAsync(string userId, FilterBase filter = null, Paginator pagination = null)
+        public async Task<PagedList<User>> GetPrivateRoomSuplementAsync(string userId, FilterBase filter = null, Paginator paginator = null)
         {
             var query = Users
                 .Where(x => x.Id != userId && x.UserRooms.Where(ur => ur.ChatRoom.IsPrivate).All(ur => !ur.ChatRoom.UserRooms.Any(r => r.UserId == userId)));
 
             query = ApplyFilter(query, filter);
             int count = await query.CountAsync();
-            query = ApplyPagination(query, pagination);
+
+
+            if (!String.IsNullOrWhiteSpace(paginator?.TailId))
+            {
+                string[] ids = await query.Select(x => x.Id).ToArrayAsync();
+                int skip = Array.IndexOf(ids, paginator.TailId);
+                skip = skip > 0 ? skip + 1 : 0;
+                query = query.Skip(skip)
+                    .Take(paginator?.PageSize > 0 ? paginator.PageSize : 10);
+            }
+            else
+            {
+                //simple pagination here
+                query = ApplyPagination(query, paginator);
+            }
+
             var data = await query.ToListAsync();
 
-            return new PagedList<User>(data, count, filter, pagination);
+            return new PagedList<User>(data, count, filter, paginator);
         }
 
         public async Task<PagedList<User>> ListAsync(FilterBase filter, Paginator paginator)

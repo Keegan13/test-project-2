@@ -102,6 +102,7 @@ namespace NoSocNet.Infrastructure.Services
                     OwnerId = room.OwnerId,
                     IsPrivate = room.IsPrivate,
                     RoomName = room.RoomName,
+                    IsFocus = true,
                     Participants = room.Participants.Select(x => new UserViewModel
                     {
                         Email = x.Email,

@@ -200,7 +200,7 @@ function onLoadUsers(data) {
 
         let url = $('#more-users-btn').attr('data-ajax-url');
         let tailId = data[data.length - 1].id;
-        $(this).attr('data-ajax-url', url.replace(/tail=(.*)/gi, () => ('tail=' + tailId.toString())));
+        $(this).attr('data-ajax-url', url.replace(/tailId=(.*)/gi, () => ('tailId=' + tailId.toString())));
     }
 
     if (data.length == 0) {
@@ -256,6 +256,10 @@ function appendChat(chat) {
     if ($(`#chat${chat.id}-tab`).length == 0) {
         appendChatLinkTo(tabLinkContainer, chat);
     };
+
+    if (chat.isFocus) {
+        $(`#chat${chat.id}-tab`).tab('show');
+    }
 }
 
 function renderMessage(msg) {

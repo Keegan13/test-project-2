@@ -74,6 +74,11 @@ img {
     max-width: 100%;
 }
 
+textarea.message-input {
+    resize: none;
+    border-radius: 10px !important;
+}
+
 .chat-heading {
     width: 80%;
     text-overflow: ellipsis;
@@ -130,10 +135,28 @@ img {
     }
 }
 
+.invite-form {
+    select.form-control {
+        height: 244px;
+    }
+}
+
 .chats-tabs {
-    height: 708px;
-    width: 100%;
-    overflow-y: auto;
+    .chat-tab-links {
+        height: 708px;
+        width: 100%;
+        overflow-y: auto;
+    }
+
+    a {
+        color: cornflowerblue;
+
+        &.active {
+            background-color: lightgoldenrodyellow !important;
+            border: none;
+            border-radius: 5px;
+        }
+    }
 
     .btn-invite {
         font-weight: 600;
@@ -145,15 +168,38 @@ img {
     }
 }
 
+.btn-primary {
+    background-color: cornflowerblue !important;
+    border: none;
+    margin: 2px;
+}
 
+.scrollable {
+    &::-webkit-scrollbar {
+        width: 1em;
+    }
 
+    &::-webkit-scrollbar-track {
+        background-color: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: cornflowerblue;
+        border-radius: 8px;
+        border: 1px black white;
+        outline: 1px solid slategrey;
+    }
+}
 
 .chat-messages {
-    height: 600px;
+    height: 634px;
     overflow-y: scroll;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+
+
+
 
     .message-info {
         font-size: 14px;

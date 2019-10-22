@@ -19,6 +19,7 @@ namespace NoSocNet.Models
         public string RoomName { get; set; }
 
         public UserViewModel Owner { get; set; }
+        public bool IsFocus { get; set; }
 
         public string OwnerId { get; set; }
 
