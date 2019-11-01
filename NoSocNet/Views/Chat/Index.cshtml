@@ -12,6 +12,8 @@
     }
 }
 
+<div id="root"></div>
+
 <div class="row">
     <div class="col-md-4">
         <div>
@@ -25,12 +27,12 @@
                 <div class="chat-tab-links scrollable">
                     <div class="nav nav-tabs nav-fill" id="nav-tab" role="tablist">
                         @foreach (var item in Model.Rooms)
-                    {
-                        <a class="nav-item nav-link w-100 chat-tab-link @(item.Id==selectedId?"active":"") @(item.HasUnread?"updated":"")" id="chat@(item.Id)-tab" data-toggle="tab" href="#chat@(item.Id)" role="tab" aria-controls="chat@(item.Id)" aria-selected="@(item.Id==selectedId?"true":"false")">
-                            <i class="fa @(item.IsPrivate?"fa fa-user":"fa fa-users")"></i>
-                            @item.RoomName
-                        </a>
-                    }
+                        {
+                            <a class="nav-item nav-link w-100 chat-tab-link @(item.Id==selectedId?"active":"") @(item.HasUnread?"updated":"")" id="chat@(item.Id)-tab" data-toggle="tab" href="#chat@(item.Id)" role="tab" aria-controls="chat@(item.Id)" aria-selected="@(item.Id==selectedId?"true":"false")">
+                                <i class="fa @(item.IsPrivate?"fa fa-user":"fa fa-users")"></i>
+                                @item.RoomName
+                            </a>
+                        }
 
                         <form data-ajax="true" data-ajax-success="onLoadChats" method="post" data-ajax-url="/chat/rooms" id="more-chats-form">
                             <input type="hidden" name="tailId" value="@(Model.Rooms.LastOrDefault()?.Id)" />
@@ -38,12 +40,12 @@
                         </form>
 
                         @foreach (var user in Model.Users)
-                    {
-                        <a class="nav-item nav-link w-100 chat-tab-user-link" href="/" data-ajax="true" method="GET" data-ajax-success="onNewChatSuccess" data-ajax-url="@Url.Action("Private","Chat",new {  user.Id })">
-                            <i class="fa fa-plus"></i>
-                            @user.UserName
-                        </a>
-                    }
+                        {
+                            <a class="nav-item nav-link w-100 chat-tab-user-link" href="/" data-ajax="true" method="GET" data-ajax-success="onNewChatSuccess" data-ajax-url="@Url.Action("Private","Chat",new {  user.Id })">
+                                <i class="fa fa-plus"></i>
+                                @user.UserName
+                            </a>
+                        }
 
                         <a class="btn"
                            style="margin: auto;font-size: small;width: 100%;"
@@ -64,7 +66,7 @@
         <div class="tab-content" id="nav-tabContent">
             @foreach (var item in Model.Rooms)
             {
-            <partial name="_chatTab" model="item" />
+                <partial name="_chatTab" model="item" />
             }
         </div>
     </div>
@@ -73,6 +75,11 @@
 <div id="hidden"></div>
 
 @section Scripts{
+
+    <script src="~/dist/main.js"></script>
+    <script>
+        MyFunc()
+    </script>
     <script>
         function onComplete() {
             $("form input[name=text]").val("")

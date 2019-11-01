@@ -3,6 +3,8 @@
 
 // Write your JavaScript code.
 
+"use strict";
+
 (function ($) {
     $.fn.hub = function (config) {
         const NotificationTypes = {
@@ -71,60 +73,76 @@
 })(jQuery);
 
 (function () {
-    $(document).on('click', 'a[data-toggle="tab"]', function (e) {
+    $(document).ready(function () {
 
-        $(e.target).removeClass("updated");
-        let tabId = $(e.target).attr("aria-controls");
-        var regex = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/g;
-        let roomId = regex.exec(tabId);
+        $(document).on('click', 'a[data-toggle="tab"]', function (e) {
 
-        //notify that current user have read all messages in current chat room
-        $.ajax({
-            url: '/chat/seen',
-            type: 'PUT',
-            data: `roomId=${roomId}`
+            $(e.target).removeClass("updated");
+            let tabId = $(e.target).attr("aria-controls");
+            var regex = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/g;
+            let roomId = regex.exec(tabId);
+
+            //notify that current user have read all messages in current chat room
+            $.ajax({
+                url: '/chat/seen',
+                type: 'PUT',
+                data: `roomId=${roomId}`
+            });
+
+            setTimeout(() => {
+                $(`#${tabId}`).find(".chat-messages").scrollTop(10000000);
+            }, 500);
+
+            // what you want to happen when mouseover and mouseout 
+            // occurs on elements that match '.dosomething'
         });
 
-        setTimeout(() => {
-            $(`#${tabId}`).find(".chat-messages").scrollTop(10000000);
-        }, 500);
+        $(document).on('chat.on.message', ".chat-messages", function (e) {
+            let scrollHeight = 0;
+            $(this).children().each(function () {
+                scrollHeight = scrollHeight + $(this).outerHeight(true);
+            });
+            console.log('scrolling with height: ' + scrollHeight);
+            $(this).scrollTop(scrollHeight);
 
-        // what you want to happen when mouseover and mouseout 
-        // occurs on elements that match '.dosomething'
-    });
-
-    $(document).on('chat.on.message', ".chat-messages", function (e) {
-        let scrollHeight = 0;
-        $(this).children().each(function () {
-            scrollHeight = scrollHeight + $(this).outerHeight(true);
+            if (!e.message) return;
+            let chatTab = $(`a#chat${e.message.chatRoomId}-tab`);
+            if (chatTab && !chatTab.hasClass("active")) {
+                chatTab.addClass("updated");
+            }
         });
-        console.log('scrolling with height: ' + scrollHeight);
-        $(this).scrollTop(scrollHeight);
 
-        if (!e.message) return;
-        let chatTab = $(`a#chat${e.message.chatRoomId}-tab`);
-        if (chatTab && !chatTab.hasClass("active")) {
-            chatTab.addClass("updated");
-        }
-    });
+        document.addEventListener('scroll', function (event) {
+            console.log("scroll");
+        }, true /*Capture event*/);
 
-    //$('.chat-messages').on('scroll', function (e) {
-    //    console.log('scroll event');
-    //});
-    $(document).on('scroll', '.chat-messages', function (e) {
-        console.log('catching scroll event');
-        //let position = $(e.target).scrollTop();
-        //if (position < 200) {
+        $(document).on('chat.on.scoll.top', '.chat-messages', function (e) {
 
-        //}
-        //console.log();
-    });
+        });
 
-    $("#search-chats-form").on('change', function (e) {
-        if (e.target.value == "") {
-            $(".chat-tab-link.restore").removeClass("restore").show();
-        }
-    });
+        //$('.chat-messages').on('scroll', function (e) {
+        //    console.log('scroll event');
+        //});
+
+        debugger;
+
+        $(document).on('scroll', function (e) {
+            debugger;
+            console.log('catching scroll event');
+            //let position = $(e.target).scrollTop();
+            //if (position < 200) {
+
+            //}
+            //console.log();
+        });
+
+        $("#search-chats-form").on('change', function (e) {
+            if (e.target.value == "") {
+                $(".chat-tab-link.restore").removeClass("restore").show();
+            }
+        });
+    })
+
 })();
 
 function partialModal(data) {

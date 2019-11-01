@@ -1,0 +1,28 @@
+{
+  "name": "test-chat-project",
+  "version": "0.0.3",
+  "description": "no",
+  "scripts": {
+    "build": "webpack --config webpack.config.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.6.4",
+    "@babel/preset-env": "^7.6.3",
+    "@babel/preset-react": "^7.6.3",
+    "@types/react": "^16.9.11",
+    "@types/react-dom": "^16.9.3",
+    "awesome-typescript-loader": "^5.2.1",
+    "babel-loader": "^8.0.6",
+    "http-proxy-agent": "^2.1.0",
+    "react": "^16.11.0",
+    "react-dom": "^16.11.0",
+    "save": "^2.4.0",
+    "source-map-loader": "^0.2.4",
+    "ts-loader": "^6.2.1",
+    "typescript": "^3.6.4",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10"
+  }
+}
