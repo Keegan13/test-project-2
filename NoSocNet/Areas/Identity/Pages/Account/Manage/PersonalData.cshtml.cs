@@ -3,17 +3,17 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
-using NoSocNet.DAL.Models;
+using NoSocNet.Domain.Models;
 
 namespace NoSocNet.Areas.Identity.Pages.Account.Manage
 {
     public class PersonalDataModel : PageModel
     {
-        private readonly UserManager<User> _userManager;
+        private readonly UserManager<UserEntity> _userManager;
         private readonly ILogger<PersonalDataModel> _logger;
 
         public PersonalDataModel(
-            UserManager<User> userManager,
+            UserManager<UserEntity> userManager,
             ILogger<PersonalDataModel> logger)
         {
             _userManager = userManager;

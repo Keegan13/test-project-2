@@ -9,10 +9,6 @@ namespace NoSocNet.Models
     {
         public string Keywords { get; set; }
 
-        public string Subject { get; set; }
-
         public string ChatRoomId { get; set; }
-
-        public NoSocNet.BLL.Enums.ParticipantsType Type { get; set; }
     }
 }

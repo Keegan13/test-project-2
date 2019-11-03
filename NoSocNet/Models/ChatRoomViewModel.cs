@@ -1,7 +1,4 @@
-﻿using Microsoft.VisualStudio.Web.CodeGeneration.Contracts.Messaging;
-using NoSocNet.BLL.Models;
-using NoSocNet.DAL.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;

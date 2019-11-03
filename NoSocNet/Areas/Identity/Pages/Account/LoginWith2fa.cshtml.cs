@@ -8,17 +8,17 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
-using NoSocNet.DAL.Models;
+using NoSocNet.Domain.Models;
 
 namespace NoSocNet.Areas.Identity.Pages.Account
 {
     [AllowAnonymous]
     public class LoginWith2faModel : PageModel
     {
-        private readonly SignInManager<User> _signInManager;
+        private readonly SignInManager<UserEntity> _signInManager;
         private readonly ILogger<LoginWith2faModel> _logger;
 
-        public LoginWith2faModel(SignInManager<User> signInManager, ILogger<LoginWith2faModel> logger)
+        public LoginWith2faModel(SignInManager<UserEntity> signInManager, ILogger<LoginWith2faModel> logger)
         {
             _signInManager = signInManager;
             _logger = logger;

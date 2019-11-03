@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc;
-using NoSocNet.BLL.Services;
-using NoSocNet.DAL.Models;
+using NoSocNet.Core.Interfaces;
 using NoSocNet.Infrastructure.Services;
 using NoSocNet.Infrastructure.Services.Hub;
 using NoSocNet.Models;
@@ -18,13 +17,13 @@ namespace NoSocNet.Controllers
     [Authorize]
     public class HubController : Controller
     {
-        public readonly IIdentityService<User> identity;
+        public readonly IIdentityService identity;
         private readonly ApplicationNotificator notificator;
         private readonly MessageObserver observer;
 
         public HubController(
             ApplicationNotificator notificator,
-            IIdentityService<User> identity,
+            IIdentityService identity,
             MessageObserver observer
             )
         {

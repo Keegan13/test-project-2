@@ -1,5 +1,4 @@
-﻿using NoSocNet.BLL.Models;
-using NoSocNet.DAL.Models;
+﻿using NoSocNet.Core.Models;
 using NoSocNet.Models;
 using System;
 using System.Linq;
@@ -21,16 +20,16 @@ namespace NoSocNet.Extensions
 
                 if (String.IsNullOrWhiteSpace(name))
                 {
-                    name = " Empty Chat";
+                    name = "Empty Chat";
                 }
 
                 return name;
             }
 
-            return String.Format(" # ({1}) {0}", room.Participants.Where(x => x.Id != currentUserId).Aggregate("", (agg, next) => agg += next.UserName + ", ").Trim(' ', ','), room.Participants.Count());
+            return String.Format("# ({1}) {0}", room.Participants.Where(x => x.Id != currentUserId).Aggregate("", (agg, next) => agg += next.UserName + ", ").Trim(' ', ','), room.Participants.Count());
         }
 
-        public static string GetRoomName(this ChatRoom<User, string> room, string currentUserId)
+        public static string GetRoomName(this ChatRoomDto room, string currentUserId)
         {
             if (!String.IsNullOrWhiteSpace(room.RoomName))
             {
@@ -43,13 +42,13 @@ namespace NoSocNet.Extensions
 
                 if (String.IsNullOrWhiteSpace(name))
                 {
-                    name = "E mpty Chat";
+                    name = "Empty Chat";
                 }
 
                 return name;
             }
 
-            return String.Format(" # ({1}) {0}", room.Participants.Where(x => x.Id != currentUserId).Aggregate("", (agg, next) => agg += next.UserName + ", ").Trim(' ', ','), room.Participants.Count());
+            return String.Format("# ({1}) {0}", room.Participants.Where(x => x.Id != currentUserId).Aggregate("", (agg, next) => agg += next.UserName + ", ").Trim(' ', ','), room.Participants.Count());
         }
 
     }

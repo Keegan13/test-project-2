@@ -1,12 +1,11 @@
-﻿using NoSocNet.BLL.Enums;
-using NoSocNet.BLL.Models;
+﻿using NoSocNet.Core.Enums;
 using System.Collections.Generic;
 
-namespace NoSocNet.BLL.Models
+namespace NoSocNet.Core.Models
 {
-    public class NewChatNotification<TUser, TKey> : NotificationBase<TKey>
+    public class NewChatNotification : NotificationBase
     {
-        public NewChatNotification(ChatRoom<TUser, TKey> newRoom, IEnumerable<TKey> receivers) : base(newRoom, NotificationType.NewChat, receivers)
+        public NewChatNotification(ChatRoomDto newRoom, IEnumerable<string> receivers) : base(newRoom, NotificationType.NewChat, receivers)
         {
 
         }

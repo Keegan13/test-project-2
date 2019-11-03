@@ -1,5 +1,5 @@
 ﻿@model IndexViewModel
-@inject IIdentityService<User> identity;
+@inject IIdentityService identity;
 @{
     ViewData["Title"] = "My chats";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -37,7 +37,7 @@
                             <button type="submit" class="btn" style="margin: auto;font-size: small;width: 100%;">Load More</button>
                         </form>
 
-                        @foreach (var user in Model.Users)
+                        @*@foreach (var user in Model.Users)
                     {
                         <a class="nav-item nav-link w-100 chat-tab-user-link" href="/" data-ajax="true" method="GET" data-ajax-success="onNewChatSuccess" data-ajax-url="@Url.Action("Private","Chat",new {  user.Id })">
                             <i class="fa fa-plus"></i>
@@ -54,7 +54,7 @@
                            data-ajax-success="onLoadUsers"
                            data-ajax-url="@Url.Action("Get","Users",new { tailId=Model.Users.LastOrDefault()?.Id })">
                             Load more
-                        </a>
+                        </a>*@
                     </div>
                 </div>
             </nav>

@@ -12,17 +12,20 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using NoSocNet.Infrastructure.Services;
-using NoSocNet.BLL.Services;
-using NoSocNet.DAL.Models;
-using NoSocNet.DAL.Context;
 using AutoMapper;
-using NoSocNet.BLL.Models;
 using NoSocNet.Models;
-using NoSocNet.Infrastructure.Services.Hub;
 using Microsoft.Extensions.Hosting;
-using NoSocNet.BLL.Abstractions.Repositories;
-using NoSocNet.Infrastructure.Repositories;
+using NoSocNet.AutoMapper;
+using NoSocNet.Infrastructure.AutoMapper;
+using NoSocNet.Infrastructure.Domain;
+using NoSocNet.Domain.Interfaces;
+using NoSocNet.Infrastructure.Services;
+using NoSocNet.Infrastructure.Services.Hub;
+using NoSocNet.Core.Interfaces;
+using NoSocNet.Infrastructure.Services.Core;
+using NoSocNet.Infrastructure.Extensions;
+using NoSocNet.Core.Services;
+using NoSocNet.Domain.Models;
 
 namespace NoSocNet
 {
@@ -45,39 +48,36 @@ namespace NoSocNet
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddAutoMapper(new[] {
-                typeof(ApplicationDbContext).Assembly,
-                typeof(Message<,>).Assembly,
-                typeof(MessageViewModel).Assembly
-            });
+            services.AddAutoMapper(typeof(UIProfile), typeof(InfrastructureProfile));
 
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
-                    Configuration.GetConnectionString("DefaultConnection")));
+                    Configuration.GetConnectionString("LocalConnection")));
 
             services.AddHttpContextAccessor();
 
             services.AddScoped<DbContext, ApplicationDbContext>(factory => factory.GetRequiredService<ApplicationDbContext>());
-            services.AddScoped<IUnitOfWork, EFCoreUnitOfWork>();
-            services.AddScoped<IChatRoomRepository<User, string>, RoomRepository>();
-            services.AddScoped<IUserRepository<User, string>, UserRepository>();
-            services.AddScoped<IMessageRepository<User, string>, MessageRepository>();
+            services.AddScoped(factory => factory.GetRequiredService<ApplicationDbContext>() as IUnitOfWork);
+            services.AddScoped<IChatRoomRepository, EFCoreChatRoomRepository>();
+            services.AddScoped<IUserRepository, EFCoreUserRepository>();
+            services.AddScoped<IMessageRepository, EFCoreMessageRepository>();
             services.AddSingleton<ApplicationNotificator>();
 
             services.AddTransient<MessageObserver>();
-            services.AddSingleton(factory => factory.GetRequiredService<ApplicationNotificator>() as INotificator<string>);
+            services.AddSingleton(factory => factory.GetRequiredService<ApplicationNotificator>() as INotificator);
 
-            services.AddScoped<IIdentityService<User>, IdentityService>();
-            services.AddScoped<IChatService<User, string>, ChatService>();
+            services.AddHttpContextIdentityService();
 
-            services.AddDefaultIdentity<User>()
+            services.AddScoped<ChatService>();
+            services.AddScoped(factory => factory.GetRequiredService<ChatService>() as IChatService);
+
+
+            services.AddDefaultIdentity<UserEntity>()
                 .AddDefaultUI(UIFramework.Bootstrap4)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
-            //workers
-            services.AddSingleton<IHostedService, ConnectionCleanup>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -24,11 +24,12 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.2.4" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NoSocNet.BLL\NoSocNet.BLL.csproj" />
-    <ProjectReference Include="..\NoSocNet.DAL\NoSocNet.DAL.csproj" />
+    <None Include="compilerconfig.json" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="compilerconfig.json" />
+    <ProjectReference Include="..\NoSocNet.BLL\NoSocNet.Core.csproj" />
+    <ProjectReference Include="..\NoSocNet.Domain\NoSocNet.Domain.csproj" />
+    <ProjectReference Include="..\NoSocNet.Infrastructure\NoSocNet.Infrastructure.csproj" />
   </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>

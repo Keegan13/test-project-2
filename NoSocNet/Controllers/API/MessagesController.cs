@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NoSocNet.BLL.Abstractions.Repositories;
-using NoSocNet.DAL.Models;
+using NoSocNet.Core.Interfaces;
+using NoSocNet.Core.Models;
+using NoSocNet.Domain.Interfaces;
+using NoSocNet.Domain.Models;
 using NoSocNet.Models;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -16,29 +19,53 @@ namespace NoSocNet.Controllers.API
     [Authorize]
     public class MessagesController : ControllerBase
     {
-        private readonly IMessageRepository<User, string> repo;
+        private readonly IMessageRepository messsages;
+        private readonly IIdentityService identity;
+        private readonly IChatService chatService;
+        private readonly IMapper mapper;
         public MessagesController(
-            IMessageRepository<User, string> repo
+            IMessageRepository repo,
+            IIdentityService identity,
+            IMapper mapper
             )
         {
-            this.repo = repo;
+            this.mapper = mapper;
+            this.messsages = repo;
+            this.identity = identity;
         }
+
+        [HttpPost]
+        //[ValidateAntiForgeryToken]
+        public async Task<IActionResult> Sent(string text, string roomId)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return Ok();
+            }
+
+            if (await this.chatService.AddMessage(this.identity.CurrentUserId, roomId, text) is MessageDto message)
+            {
+                return new JsonResult(new MessageViewModel
+                {
+                    ChatRoomId = message.ChatRoomId,
+                    Id = message.Id,
+                    SendDate = message.SendDate,
+                    SenderId = message.Sender.Id,
+                    Text = message.Text,
+                    SenderUserName = message.Sender.UserName
+                });
+            }
+
+            return NotFound(new { roomId });
+        }
+
 
         [HttpGet]
         public async Task<MessageViewModel[]> Get(string roomId, int? tail)
         {
-            var messages = await repo.GetMessagesAsync(roomId, 10, tail);
+            var messages = await messsages.GetMessagesAsync(roomId, 10, tail);
 
-            return messages.Select(x => new MessageViewModel
-            {
-                Id = x.Id,
-                ChatRoomId = x.ChatRoomId,
-                ReadByUsersIds = x.ReadByUsers.Select(u => u.Id).ToList(),
-                SendDate = x.SendDate,
-                SenderId = x.SenderId,
-                Text = x.Text,
-                SenderUserName = x.Sender.UserName
-            }).ToArray();
+            return messages.Select(x => mapper.Map<MessageEntity, MessageViewModel>(x)).ToArray();
         }
     }
 }

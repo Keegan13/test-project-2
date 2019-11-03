@@ -1,12 +1,11 @@
-﻿using NoSocNet.BLL.Enums;
-using NoSocNet.BLL.Models;
+﻿using NoSocNet.Core.Enums;
 using System.Collections.Generic;
 
-namespace NoSocNet.BLL.Models
+namespace NoSocNet.Core.Models
 {
-    public class MessageNotification<TUser, TKey> : NotificationBase<TKey>
+    public class MessageNotification: NotificationBase
     {
-        public MessageNotification(Message<TUser, TKey> userJoin, IEnumerable<TKey> receivers) : base(userJoin, NotificationType.Message, receivers)
+        public MessageNotification(MessageDto userJoin, IEnumerable<string> receivers) : base(userJoin, NotificationType.Message, receivers)
         {
 
         }

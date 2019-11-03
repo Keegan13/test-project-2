@@ -1,14 +1,13 @@
-﻿using NoSocNet.BLL.Abstractions;
-using NoSocNet.BLL.Enums;
-using NoSocNet.BLL.Services;
+﻿using NoSocNet.Core.Enums;
+using NoSocNet.Core.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NoSocNet.BLL.Models
+namespace NoSocNet.Core.Models
 {
-    public abstract class NotificationBase<TUserKey> : INotification<TUserKey>
+    public abstract class NotificationBase : INotification
     {
-        public NotificationBase(object body, NotificationType type, IEnumerable<TUserKey> receivers)
+        public NotificationBase(object body, NotificationType type, IEnumerable<string> receivers)
         {
             Type = type;
             Receivers = receivers.ToArray();
@@ -17,7 +16,7 @@ namespace NoSocNet.BLL.Models
 
         public NotificationType Type { get; protected set; }
 
-        public IEnumerable<TUserKey> Receivers { get; protected set; }
+        public IEnumerable<string> Receivers { get; protected set; }
 
         public virtual object Body { get; protected set; }
     }

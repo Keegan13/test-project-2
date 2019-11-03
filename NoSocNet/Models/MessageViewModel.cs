@@ -1,4 +1,4 @@
-﻿using NoSocNet.DAL.Models;
+﻿using NoSocNet.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +13,7 @@ namespace NoSocNet.Models
 
         public MessageViewModel()
         {
-            this.ReadByUsersIds = new List<string>();
+            this.ReadByUsersIds = new List<UserViewModel>();
         }
         public int Id { get; set; }
 
@@ -37,6 +37,6 @@ namespace NoSocNet.Models
 
         public string SenderUserName { get; set; }
 
-        public List<string> ReadByUsersIds { get; set; }
+        public List<UserViewModel> ReadByUsersIds { get; set; }
     }
 }

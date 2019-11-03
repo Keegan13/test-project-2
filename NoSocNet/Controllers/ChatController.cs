@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using NoSocNet.BLL.Abstractions.Repositories;
-using NoSocNet.BLL.Models;
-using NoSocNet.BLL.Services;
-using NoSocNet.DAL.Models;
+using NoSocNet.Core.Interfaces;
+using NoSocNet.Domain.Interfaces;
+using NoSocNet.Domain.Models;
 using NoSocNet.Extensions;
+using NoSocNet.Domain.Models;
 using NoSocNet.Models;
 using System;
 using System.Collections.Generic;
@@ -20,22 +20,22 @@ namespace NoSocNet.Controllers
     [Authorize]
     public class ChatController : Controller
     {
-        private readonly IChatService<User, string> chatService;
-        private readonly UserManager<User> userManager;
+        private readonly IChatService chatService;
+        private readonly UserManager<UserEntity> userManager;
         private readonly IMapper mapper;
-        private readonly IIdentityService<User> identity;
-        private readonly IChatRoomRepository<User, string> roomRepo;
-        private readonly IMessageRepository<User, string> messageRepo;
-        private readonly IUserRepository<User, string> userRepo;
+        private readonly IIdentityService identity;
+        private readonly IChatRoomRepository roomRepo;
+        private readonly IMessageRepository messageRepo;
+        private readonly IUserRepository userRepo;
 
         public ChatController(
-            IUserRepository<User, string> userRepo,
-            IMessageRepository<User, string> messageRepo,
-            IChatService<User, string> chatService,
-            IIdentityService<User> identity,
-            UserManager<User> userManager,
+            IUserRepository userRepo,
+            IMessageRepository messageRepo,
+            IChatService chatService,
+            IIdentityService identity,
+            UserManager<UserEntity> userManager,
             IMapper mapper,
-            IChatRoomRepository<User, string> roomRepo
+            IChatRoomRepository roomRepo
             //ILogger logger
             )
         {
@@ -46,6 +46,7 @@ namespace NoSocNet.Controllers
             this.userManager = userManager;
             this.identity = identity;
             this.chatService = chatService;
+
         }
 
         [HttpPut]
@@ -58,28 +59,13 @@ namespace NoSocNet.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(string roomId = null)
+        public async Task<IActionResult> Index(string roomId = null, string[] loadedRoomsIds = null)
         {
             string userId = this.identity.CurrentUserId;
 
-            var rooms = (await roomRepo.GetRoomsAsync(userId)).Items
-                .Select(x => new ChatRoomViewModel
-                {
-                    Id = x.Id,
-                    RoomName = x.GetRoomName(userId),
-                    OwnerId = x.OwnerId,
-                    IsPrivate = x.IsPrivate,
-                    Messages = x.Messages.Select(ms => mapper.Map<MessageViewModel>(ms)).ToList(),
-                    Owner = mapper.Map<UserViewModel>(x.Owner),
-                    Participants = x.Participants.Select(u => mapper.Map<UserViewModel>(u)).ToList(),
-                    HasUnread = x.HasUnread
-                });
+            var rooms = (await roomRepo.GetRecentChatRoomsAsync(userId, loadedRoomsIds));
 
-            var currentUserId = identity.CurrentUserId;
-            var data = await userRepo.GetPrivateRoomSuplementAsync(currentUserId, new FilterBase
-            {
-                CurrentUserId=currentUserId
-            }, new Paginator { PageSize = 5 });
+            var reads = await roomRepo.GetHasUnreadAsync(rooms.Select(x => x.Id).ToArray(), userId);
 
             if (!String.IsNullOrEmpty(roomId) && rooms.Any(x => x.Id == roomId))
             {
@@ -88,41 +74,31 @@ namespace NoSocNet.Controllers
 
             return View(new IndexViewModel
             {
-                UsersPage = new PagedList<UserViewModel>(data.Items.Select(x => mapper.Map<UserViewModel>(x)), data.TotalCount, data.Filter, data.Pagination),
-                Rooms = rooms,
+                Rooms = rooms.Select(x =>
+                {
+                    var vm = mapper.Map<ChatRoomEntity, ChatRoomViewModel>(x);
+                    vm.HasUnread = reads[vm.Id];
+                    vm.RoomName = vm.GetRoomName(userId);
+                    return vm;
+                })
             });
         }
 
         public async Task<IActionResult> Invite(string id)
         {
-            PagedList<User> rawUsers = (await this.userRepo.ListAsync(
-                new FilterBase
-                {
-                    ChatRoomId = id,
-                    Type = BLL.Enums.ParticipantsType.NonParticipant
-                },
-                new Paginator
-                {
-                    Page = 1,
-                    PageSize = 10,
-                    SortColumn = "Email",
-                    SortOrder = BLL.Enums.SortOrder.Ascending
-                }
-            ));
+            string currentUserId = identity.CurrentUserId;
+            var users = await this.userRepo.GetNonParticipantsForRoomAsync(currentUserId, null, 10);
 
+            ChatRoomEntity chatRoom = await this.roomRepo.FindByIdAsync(id);
 
-            ChatRoom<User, string> chatRoom = await this.roomRepo.GetRoom(id);
-
-            if (rawUsers != null && chatRoom != null)
+            if (users != null && chatRoom != null)
             {
+                var roomVm = mapper.Map<ChatRoomEntity, ChatRoomViewModel>(chatRoom);
                 var model = new InviteUsersViewModel
                 {
-                    RoomName = chatRoom.GetRoomName(identity.CurrentUserId),
-                    Page = rawUsers.Pagination.Page,
-                    TotalCount = rawUsers.TotalCount,
-                    PageSize = rawUsers.Pagination.PageSize,
+                    RoomName = roomVm.GetRoomName(identity.CurrentUserId),
                     RoomId = id,
-                    Users = rawUsers.Items.Select(x => mapper.Map<UserViewModel>(x)).ToList()
+                    Users = users.Select(x => mapper.Map<UserEntity, UserViewModel>(x)).ToList()
                 };
 
                 return PartialView("_InviteUsers", model);
@@ -144,18 +120,8 @@ namespace NoSocNet.Controllers
 
             }
 
-            var room = await this.roomRepo.GetRoom(roomId);
-            var model = new ChatRoomViewModel
-            {
-                Id = room.Id,
-                Messages = room.Messages.Select(x => mapper.Map<MessageViewModel>(x)).ToList(),
-                Participants = room.Participants.Select(x => mapper.Map<UserViewModel>(x)).ToList(),
-                IsPrivate = room.IsPrivate,
-                Owner = mapper.Map<UserViewModel>(room.Owner),
-                RoomName = room.GetRoomName(identity.CurrentUserId),
-                OwnerId = room.OwnerId
-            };
-
+            var room = await this.roomRepo.FindByIdAsync(roomId);
+            var model = mapper.Map<ChatRoomEntity, ChatRoomViewModel>(room);
             return PartialView("_chat", model);
         }
 
@@ -163,46 +129,11 @@ namespace NoSocNet.Controllers
         [HttpPost]
         public async Task<IActionResult> InviteList(UserFilterModel filter)
         {
-            var result = await userRepo.ListAsync(new FilterBase
-            {
-                ChatRoomId = filter.ChatRoomId,
-                Keywords = filter.Keywords,
-                Type = NoSocNet.BLL.Enums.ParticipantsType.NonParticipant,
+            var result = await userRepo.GetNonParticipantsForRoomAsync(identity.CurrentUserId, filter.Keywords, 10, (filter.Page - 1) * 10);
 
-            },
-            new Paginator
-            {
-                Page = filter.Page > 0 ? filter.Page : 0,
-                PageSize = filter.PageSize > 0 ? filter.PageSize : 10
-            });
-
-            var model = result.Items.Select(x => mapper.Map<UserViewModel>(x)).ToList();
+            var model = result.Select(x => mapper.Map<UserEntity, UserViewModel>(x)).ToList();
 
             return PartialView("_userSelectList", model);
-        }
-        [HttpPost]
-        //[ValidateAntiForgeryToken]
-        public async Task<IActionResult> Sent(string text, string roomId)
-        {
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                return Ok();
-            }
-
-            if (await this.chatService.AddMessage(this.identity.CurrentUserId, roomId, text) is Message<User, string> message)
-            {
-                return new JsonResult(new MessageViewModel
-                {
-                    ChatRoomId = message.ChatRoomId,
-                    Id = message.Id,
-                    SendDate = message.SendDate,
-                    SenderId = message.SenderId,
-                    Text = message.Text,
-                    SenderUserName = message.Sender.UserName
-                });
-            }
-
-            return NotFound(new { roomId });
         }
 
         [HttpGet]
@@ -239,7 +170,7 @@ namespace NoSocNet.Controllers
         [HttpPost]
         public async Task<IActionResult> Room([FromForm] string roomId)
         {
-            var chatRoom = await roomRepo.GetRoom(roomId);
+            var chatRoom = await roomRepo.FindByIdAsync(roomId);
 
             if (chatRoom == null)
             {
@@ -248,78 +179,17 @@ namespace NoSocNet.Controllers
 
             string currUserId = identity.CurrentUserId;
 
-            var result = new ChatRoomViewModel
-            {
-                Id = chatRoom.Id,
-                IsPrivate = chatRoom.IsPrivate,
-                RoomName = chatRoom.GetRoomName(currUserId),
-                Owner = chatRoom.Owner == null ? null : new UserViewModel
-                {
-                    Email = chatRoom.Owner.Email,
-                    Id = chatRoom.Owner.Id,
-                    UserName = chatRoom.Owner.UserName
-                },
-                OwnerId = chatRoom.OwnerId,
-                Participants = chatRoom.Participants.Select(x => new UserViewModel
-                {
-                    Id = x.Id,
-                    Email = x.Email,
-                    UserName = x.UserName
-                }).ToList(),
-                Messages = chatRoom.Messages.Select(m => new MessageViewModel
-                {
-                    Id = m.Id,
-                    Text = m.Text,
-                    SendDate = m.SendDate,
-                    SenderId = m.SenderId,
-                    SenderUserName = m.Sender.UserName,
-                    ChatRoomId = m.ChatRoomId,
-                    ReadByUsersIds = m.ReadByUsers.Select(r => r.Id).ToList()
-                }).ToList()
-            };
+            ChatRoomViewModel result = mapper.Map<ChatRoomEntity, ChatRoomViewModel>(chatRoom);
 
             return Json(result);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Rooms([FromForm] string tailId = null, [FromForm] string keywords = null)
+        public async Task<IActionResult> Rooms([FromForm] string keywords = null)
         {
             var currUserId = identity.CurrentUserId;
-            var rooms = await roomRepo.GetRoomsAsync(currUserId, new FilterBase { Keywords = keywords }, new Paginator
-            {
-                TailId = tailId
-            });
-
-            var result = rooms.Items.Select(x => new ChatRoomViewModel
-            {
-                Id = x.Id,
-                IsPrivate = x.IsPrivate,
-                RoomName = x.GetRoomName(currUserId),
-                Owner = x.Owner == null ? null : new UserViewModel
-                {
-                    Email = x.Owner.Email,
-                    Id = x.Owner.Id,
-                    UserName = x.Owner.UserName
-                },
-                OwnerId = x.OwnerId,
-                Messages = x.Messages.Select(m => new MessageViewModel
-                {
-                    Id = m.Id,
-                    Text = m.Text,
-                    SendDate = m.SendDate,
-                    SenderId = m.SenderId,
-                    SenderUserName = m.Sender.UserName,
-                    ChatRoomId = m.ChatRoomId,
-                    ReadByUsersIds = m.ReadByUsers.Select(r => r.Id).ToList()
-
-                }).ToList(),
-                Participants = x.Participants.Select(u => new UserViewModel
-                {
-                    Email = u.Email,
-                    Id = u.Id,
-                    UserName = u.UserName
-                }).ToList()
-            });
+            var rooms = await roomRepo.SearchRoomsAsync(currUserId, keywords);
+            var result = rooms.Select(x => mapper.Map<ChatRoomEntity, ChatRoomViewModel>(x)).ToList();
 
             return Json(result);
         }

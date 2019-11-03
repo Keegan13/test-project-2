@@ -1,12 +1,11 @@
-﻿using NoSocNet.BLL.Enums;
-using NoSocNet.BLL.Models;
+﻿using NoSocNet.Core.Enums;
 using System.Collections.Generic;
 
-namespace NoSocNet.BLL.Models
+namespace NoSocNet.Core.Models
 {
-    public class ChatJoinNoitification<TUser, TKey> : NotificationBase<TKey>
+    public class ChatJoinNoitification : NotificationBase
     {
-        public ChatJoinNoitification(NewChatUser<TUser, TKey> userJoin, IEnumerable<TKey> receivers) : base(userJoin, NotificationType.ChatJoin, receivers)
+        public ChatJoinNoitification(NewChatUser userJoin, IEnumerable<string> receivers) : base(userJoin, NotificationType.ChatJoin, receivers)
         {
 
         }

@@ -1,5 +1,4 @@
-﻿using NoSocNet.BLL.Models;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 
 namespace NoSocNet.Models

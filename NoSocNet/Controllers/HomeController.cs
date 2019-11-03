@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using NoSocNet.DAL.Context;
-using NoSocNet.DAL.Models;
+using NoSocNet.Infrastructure.Domain;
+using NoSocNet.Domain.Models;
 using NoSocNet.Infrastructure.Seeding;
 using NoSocNet.Models;
 
@@ -16,8 +16,8 @@ namespace NoSocNet.Controllers
     public class HomeController : Controller
     {
         private readonly ApplicationDbContext context;
-        private readonly UserManager<User> userManager;
-        public HomeController(ApplicationDbContext context, UserManager<User> userManager)
+        private readonly UserManager<UserEntity> userManager;
+        public HomeController(ApplicationDbContext context, UserManager<UserEntity> userManager)
         {
             this.context = context;
             this.userManager = userManager;

@@ -1,9 +1,9 @@
-﻿namespace NoSocNet.BLL.Models
+﻿namespace NoSocNet.Core.Models
 {
-    public class NewChatUser<TUser, TKey>
+    public class NewChatUser
     {
-        public ChatRoom<TUser, TKey> Room { get; set; }
+        public ChatRoomDto Room { get; set; }
 
-        public TUser User { get; set; }
+        public UserDto User { get; set; }
     }
 }
