@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NoSocNet.BLL\NoSocNet.Core.csproj" />
+    <ProjectReference Include="..\NoSocNet.Core\NoSocNet.Core.csproj" />
     <ProjectReference Include="..\NoSocNet.Domain\NoSocNet.Domain.csproj" />
   </ItemGroup>
 

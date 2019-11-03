@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29306.81
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoSocNet", "NoSocNet\NoSocNet.csproj", "{1DC530E2-0936-422D-8A26-EB01B51B0B5D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoSocNet.Core", "NoSocNet.BLL\NoSocNet.Core.csproj", "{6D047783-EE84-4DDA-8235-B45F0EE06F83}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoSocNet.Core", "NoSocNet.Core\NoSocNet.Core.csproj", "{6D047783-EE84-4DDA-8235-B45F0EE06F83}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoSocNet.Domain", "NoSocNet.Domain\NoSocNet.Domain.csproj", "{DF5879C6-7DD0-4B00-B39C-7773C1BE7545}"
 EndProject
