@@ -35,7 +35,7 @@ namespace NoSocNet.Controllers
 
         [HttpGet]
         [ActionName("Index")]
-        public async Task<IActionResult> Get(Mode? mode = null)
+        public IActionResult Get(Mode? mode = null)
         {
             var model = new HubResponseViewModel();
 
@@ -106,7 +106,6 @@ namespace NoSocNet.Controllers
                     }
                 }
             }
-            return null;
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NoSocNet.Domain.Interfaces;
 using NoSocNet.Domain.Models;
-using NoSocNet.Domain.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -36,6 +36,7 @@ namespace NoSocNet.Infrastructure.Services
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 return Task.FromResult(false);
             }
         }

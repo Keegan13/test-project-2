@@ -8,7 +8,6 @@ using NoSocNet.Core.Interfaces;
 using NoSocNet.Domain.Interfaces;
 using NoSocNet.Domain.Models;
 using NoSocNet.Extensions;
-using NoSocNet.Domain.Models;
 using NoSocNet.Models;
 using System;
 using System.Collections.Generic;
@@ -161,6 +160,7 @@ namespace NoSocNet.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 //ToDo log error
                 //logger.Error("{0}",ex.ToString());
                 return StatusCode(404);
@@ -183,11 +183,15 @@ namespace NoSocNet.Controllers
 
             return Json(result);
         }
-
+        public IActionResult Search(string q)
+        {
+            return Json(new[] { "1", "123" });
+        }
         [HttpPost]
         public async Task<IActionResult> Rooms([FromForm] string keywords = null)
         {
             var currUserId = identity.CurrentUserId;
+            return Json(new[] { "1", "123" });
             var rooms = await roomRepo.SearchRoomsAsync(currUserId, keywords);
             var result = rooms.Select(x => mapper.Map<ChatRoomEntity, ChatRoomViewModel>(x)).ToList();
 

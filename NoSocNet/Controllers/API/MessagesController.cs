@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
@@ -26,11 +24,14 @@ namespace NoSocNet.Controllers.API
         public MessagesController(
             IMessageRepository repo,
             IIdentityService identity,
+            IChatService chatService,
             IMapper mapper
             )
         {
+            this.chatService = chatService;
             this.mapper = mapper;
             this.messsages = repo;
+            
             this.identity = identity;
         }
 
