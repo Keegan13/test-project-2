@@ -53,6 +53,15 @@ namespace NoSocNet.Infrastructure.Domain
             return data.OrderBy(x => x.SendDate);
         }
 
+        public override Task<MessageEntity> FindByIdAsync(int keys)
+        {
+            return this.context
+                .Set<MessageEntity>()
+                .Include(x => x.ChatRoom)
+                .ThenInclude(x => x.UserRooms)
+                .ThenInclude(x => x.User)
+                .FirstOrDefaultAsync(x => x.Id == keys);
+        }
         public override async Task<ICollection<MessageEntity>> Search(string keywords, string currentUserId, int skip = 0, int take = 10)
         {
             if (skip < 0)

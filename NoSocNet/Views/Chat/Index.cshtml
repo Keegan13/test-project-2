@@ -23,9 +23,8 @@
                         <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
                     </div>
                 </form>
-                <input class="form-control basicAutoComplete" type="text"
-                       data-url="/chat/search"
-                       autocomplete="off">
+                <input class="form-control" type="search" id="search-input" />
+
                 <div class="chat-tab-links scrollable">
                     <div class="nav nav-tabs nav-fill" id="nav-tab" role="tablist">
                         @foreach (var item in Model.Rooms)
@@ -42,23 +41,23 @@
                         </form>
 
                         @*@foreach (var user in Model.Users)
-                {
-                    <a class="nav-item nav-link w-100 chat-tab-user-link" href="/" data-ajax="true" method="GET" data-ajax-success="onNewChatSuccess" data-ajax-url="@Url.Action("Private","Chat",new {  user.Id })">
-                        <i class="fa fa-plus"></i>
-                        @user.UserName
-                    </a>
-                }
+                            {
+                                <a class="nav-item nav-link w-100 chat-tab-user-link" href="/" data-ajax="true" method="GET" data-ajax-success="onNewChatSuccess" data-ajax-url="@Url.Action("Private","Chat",new {  user.Id })">
+                                    <i class="fa fa-plus"></i>
+                                    @user.UserName
+                                </a>
+                            }
 
-                    <a class="btn"
-                       style="margin: auto;font-size: small;width: 100%;"
-                       id="more-users-btn"
-                       href="/"
-                       data-ajax="true"
-                       method="GET"
-                       data-ajax-success="onLoadUsers"
-                       data-ajax-url="@Url.Action("Get","Users",new { tailId=Model.Users.LastOrDefault()?.Id })">
-                        Load more
-                    </a>*@
+                                <a class="btn"
+                                   style="margin: auto;font-size: small;width: 100%;"
+                                   id="more-users-btn"
+                                   href="/"
+                                   data-ajax="true"
+                                   method="GET"
+                                   data-ajax-success="onLoadUsers"
+                                   data-ajax-url="@Url.Action("Get","Users",new { tailId=Model.Users.LastOrDefault()?.Id })">
+                                    Load more
+                                </a>*@
                     </div>
                 </div>
             </nav>
@@ -83,7 +82,10 @@
             $("form input[name=text]").val("")
         }
         (function ($) {
-            $('.basicAutoComplete').autoComplete();
+            $('#search-input').appSearch({
+                onUser: function (id) { alert("Starting chat with user " + id) },
+                onChat: function (id) { alert("Starting chat with id" + id) }
+            });
         })(jQuery)
     </script>
     <script>

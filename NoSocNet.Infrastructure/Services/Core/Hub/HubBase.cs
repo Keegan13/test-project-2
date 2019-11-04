@@ -67,8 +67,11 @@ namespace NoSocNet.Infrastructure.Services.Hub
                 }
             }
 
-            this._event.Invoke(this, new HubNotificationArguments(notification, destinationsIds));
-            _resetEvent.Set();
+            if (destinationsIds.Count() > 0)
+            {
+                this._event.Invoke(this, new HubNotificationArguments(notification, destinationsIds));
+                _resetEvent.Set();
+            }
         }
     }
 }

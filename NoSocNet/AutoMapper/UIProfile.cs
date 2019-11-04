@@ -17,9 +17,12 @@ namespace NoSocNet.AutoMapper
                 .ForMember(x => x.Messages, opt => opt.MapFrom(o => o.Messages))
                 .ForMember(x => x.Participants, opt => opt.MapFrom(o => o.UserRooms.Select(x => x.User).ToList()));
 
+            CreateMap<NewChatUser, ChatJoinViewModel>()
+                .ForMember(x => x.ChatId, opt => opt.MapFrom(o => o.Room.Id))
+                .ForMember(x => x.ChatName, opt => opt.MapFrom(o => o.Room.RoomName))
+                .ForMember(x => x.User, opt => opt.MapFrom(o => o.User));
 
             CreateMap<ChatRoomDto, ChatRoomViewModel>();
-
 
             CreateMap<Domain.Models.UserEntity, UserViewModel>()
                     .ForMember(x => x.Id, opt => opt.MapFrom(o => o.Id))

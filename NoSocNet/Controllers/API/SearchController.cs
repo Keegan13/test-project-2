@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using NoSocNet.Core.Interfaces;
 using NoSocNet.Domain.Interfaces;
 using NoSocNet.Domain.Models;
+using NoSocNet.Extensions;
 using NoSocNet.Models;
 
 namespace NoSocNet.Controllers.API
@@ -44,12 +46,19 @@ namespace NoSocNet.Controllers.API
             var messages = await messagesRepo.Search(keywords, currentUserId);
             var chatRooms = await chatRoomsRepo.Search(keywords, currentUserId);
 
-            return new SearchResult
+            var result = new SearchResult
             {
                 Users = users.Select(x => mapper.Map<UserEntity, UserViewModel>(x)).ToArray(),
                 Messages = messages.Select(x => mapper.Map<MessageEntity, MessageViewModel>(x)).ToArray(),
-                ChatRooms = chatRooms.Select(x => mapper.Map<ChatRoomEntity, ChatRoomViewModel>(x)).ToArray()
+                ChatRooms = chatRooms.Select(x => mapper.Map<ChatRoomEntity, ChatRoomViewModel>(x)).Select(x =>
+                {
+                    x.RoomName = x.GetRoomName(currentUserId);
+                    x.Participants = String.IsNullOrWhiteSpace(keywords) ? x.Participants : x.Participants.Where(u => u.UserName.Contains(keywords) || u.Email.Contains(keywords)).ToList();
+                    return x;
+                }).ToArray()
             };
+
+            return result;
         }
 
 

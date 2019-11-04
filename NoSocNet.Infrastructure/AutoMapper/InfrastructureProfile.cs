@@ -18,9 +18,9 @@ namespace NoSocNet.Infrastructure.AutoMapper
 
             CreateMap<UsersChatRoomsEntity, UserDto>()
                 .ForMember(x => x.UserName, opt => opt.MapFrom(o => o.User.UserName))
-                .ForMember(x => x.Id, opt => opt.MapFrom(o => o.User.UserName))
+                .ForMember(x => x.Id, opt => opt.MapFrom(o => o.User.Id))
                 .ForMember(x => x.Email, opt => opt.MapFrom(o => o.User.Email));
-         
+
 
             CreateMap<UserEntity, UserDto>()
                     .ForMember(x => x.Id, opt => opt.MapFrom(o => o.Id))

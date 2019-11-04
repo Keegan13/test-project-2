@@ -95,7 +95,7 @@ namespace NoSocNet.Infrastructure.Domain
 
         public Task<int> SaveChangesAsync()
         {
-            return this.SaveChangesAsync();
+            return base.SaveChangesAsync();
         }
     }
 }

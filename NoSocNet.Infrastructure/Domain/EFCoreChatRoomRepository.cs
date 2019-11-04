@@ -69,7 +69,8 @@ namespace NoSocNet.Infrastructure.Domain
 
             query = query
                 .Include(x => x.OwnerUser)
-                .Include(x => x.UserRooms).ThenInclude(x => x.User);
+                .Include(x => x.UserRooms).ThenInclude(x => x.User)
+                .Include(x => x.Messages).ThenInclude(x => x.SenderUser);
 
 
             if (skipIds != null && skipIds.Length > 0)
@@ -77,30 +78,34 @@ namespace NoSocNet.Infrastructure.Domain
                 query = query.Where(x => !skipIds.Contains(x.Id));
             }
 
+
+            query = query.OrderBy(x => x.Messages.OrderByDescending(m => m.SendDate).Select(m => m.SendDate).FirstOrDefault()).Take(10);
+
             var data = await query
                 .ToListAsync();
 
             var selectedChatRoomIds = data.Select(x => x.Id).ToArray();
 
-            var messageLookup = this.context.Set<MessageEntity>()
-                .Include(x => x.SenderUser)
-                .Include(x => x.ReadByUsers).ThenInclude(x => x.User)
-                .Where(x => selectedChatRoomIds.Contains(x.ChatRoomId))
-                .GroupBy(x => x.ChatRoomId)
-                .SelectMany(x => x.OrderByDescending(m => m.SendDate).Take(10))
-                .ToLookup(x => x.ChatRoomId);
+            //var messageLookup = this.context.Set<MessageEntity>()
+            //    .Include(x => x.SenderUser)
+            //    .Include(x => x.ReadByUsers).ThenInclude(x => x.User)
+            //    .Where(x => selectedChatRoomIds.Contains(x.ChatRoomId))
+            //    .GroupBy(x => x.ChatRoomId)
+            //    .SelectMany(x => x.OrderByDescending(m => m.SendDate).Take(10))
+            //    .ToLookup(x => x.ChatRoomId);
 
-            foreach (var item in data)
-            {
-                item.Messages = messageLookup[item.Id].Reverse().ToList();
-            }
+            //foreach (var item in data)
+            //{
+            //    item.Messages = messageLookup[item.Id].Reverse().ToList();
+            //}
 
             return data;
         }
 
         public async Task<IEnumerable<ChatRoomEntity>> SearchRoomsAsync(string userId, string keywords, int take = 10, int skip = 0)
         {
-            IQueryable<ChatRoomEntity> query = this.context.Set<ChatRoomEntity>()
+            IQueryable<ChatRoomEntity> query = this.context
+                .Set<ChatRoomEntity>()
                 .Where(x => x.UserRooms.Any(ur => ur.UserId == userId));
 
             if (!String.IsNullOrEmpty(keywords))
@@ -140,12 +145,13 @@ namespace NoSocNet.Infrastructure.Domain
             }
 
             if (String.IsNullOrWhiteSpace(currentUserId))
-            { 
+            {
                 throw new ArgumentException(nameof(currentUserId));
             }
 
             IQueryable<ChatRoomEntity> query = this.context
                 .Set<ChatRoomEntity>()
+                .Include(x => x.UserRooms).ThenInclude(x => x.User)
                 .Where(x => x.UserRooms.Any(ur => ur.UserId == currentUserId));
 
             if (!String.IsNullOrWhiteSpace(keywords))
@@ -153,7 +159,9 @@ namespace NoSocNet.Infrastructure.Domain
                 query = query.Where(x => x.RoomName.Contains(keywords) || x.UserRooms.Any(ur => ur.User.UserName.Contains(keywords) || ur.User.Email.Contains(keywords)));
             }
 
-            return await query.Skip(skip).Take(take).ToListAsync();
+            var data = await query.Skip(skip).Take(take).ToListAsync();
+
+            return data;
         }
     }
 }

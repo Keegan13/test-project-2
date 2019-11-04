@@ -15,20 +15,18 @@ namespace NoSocNet.Infrastructure.Services.Hub
         private readonly ApplicationNotificator hub;
         private readonly ManualResetEvent notificator;
         private HubNotification Notification = null;
-        private readonly IIdentityService identity;
+
         private bool notificationReceived = false;
 
         public MessageObserver(
-            IIdentityService identity,
             ApplicationNotificator hub
             )
         {
-            this.identity = identity;
             this.hub = hub;
             this.notificator = hub.GetNotificator();
         }
 
-        public HubNotification GetMessageOrDefaultAsync(Guid connectionId, int? timeOut = null)
+        public virtual HubNotification GetMessageOrDefaultAsync(Guid connectionId, int? timeOut = null)
         {
             this.ConnectionId = connectionId;
 

@@ -186,3 +186,34 @@ textarea.message-input {
     height: 40px; }
     .user-list .user-list-item:hover {
       background-color: blanchedalmond; }
+
+.autocomplete {
+  z-index: 2;
+  max-height: 600px;
+  overflow-y: auto;
+  position: absolute;
+  width: 100%;
+  background-color: white;
+  border: 1px solid cornflowerblue;
+  padding: 24px;
+  /* margin: 3px; */
+  border-radius: 8px;
+  overflow-x: hidden; }
+  .autocomplete .autocomplete-item {
+    cursor: pointer;
+    padding-top: 4px;
+    padding-bottom: 4px; }
+    .autocomplete .autocomplete-item span {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      width: 273px;
+      display: inline-block; }
+    .autocomplete .autocomplete-item i {
+      font-size: large;
+      color: cornflowerblue; }
+    .autocomplete .autocomplete-item:hover {
+      background-color: cornflowerblue;
+      color: white; }
+      .autocomplete .autocomplete-item:hover i {
+        color: white; }

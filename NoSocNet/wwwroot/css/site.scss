@@ -259,3 +259,45 @@ textarea.message-input {
         }
     }
 }
+
+.autocomplete {
+    z-index: 2;
+    max-height: 600px;
+    overflow-y: auto;
+    position: absolute;
+    width: 100%;
+    background-color: white;
+    border: 1px solid cornflowerblue;
+    padding: 24px;
+    /* margin: 3px; */
+    border-radius: 8px;
+    overflow-x: hidden;
+
+    .autocomplete-item {
+        cursor: pointer;
+        padding-top: 4px;
+        padding-bottom: 4px;
+
+        span {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            width: 273px;
+            display: inline-block;
+        }
+
+        i {
+            font-size: large;
+            color: cornflowerblue;
+        }
+
+        &:hover {
+            background-color: cornflowerblue;
+            color: white;
+
+            i {
+                color: white;
+            }
+        }
+    }
+}

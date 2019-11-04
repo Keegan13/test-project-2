@@ -18,14 +18,14 @@ namespace NoSocNet.Infrastructure.Domain
 
         }
 
-        public async Task<TKey> CreateAsync(TEntity entity)
+        public virtual async Task<TKey> CreateAsync(TEntity entity)
         {
-            var result = await this.context.AddAsync(entity);
+            var result = this.context.Add(entity);
             await this.context.SaveChangesAsync();
-            return (result as IIdentifiable<TKey>).Id;
+            return result.Entity.Id;
         }
 
-        public async Task<TEntity> FindByIdAsync(TKey keys)
+        public virtual async Task<TEntity> FindByIdAsync(TKey keys)
         {
             return await this.context.Set<TEntity>().FindAsync(keys);
         }
