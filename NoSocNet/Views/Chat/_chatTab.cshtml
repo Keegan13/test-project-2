@@ -6,6 +6,9 @@
 
 @inject IIdentityService identity
 
-<div class="tab-pane fade @(Model.Id==selectedId?"show active":"")" id="chat@(Model.Id)" role="tabpanel" aria-labelledby="chat@(Model.Id)-tab">
-    <partial name="_chat" model="@Model" />
+<div class="tab-pane chat-messages scrollable fade @(Model.Id==selectedId?"show active":"")" id="chat@(Model.Id)" role="tabpanel" aria-labelledby="chat@(Model.Id)-tab">
+    @foreach (var message in Model.Messages)
+    {
+        <partial name="_Message" model="@message" />
+    }
 </div>

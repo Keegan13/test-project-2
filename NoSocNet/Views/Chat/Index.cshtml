@@ -12,19 +12,12 @@
     }
 }
 
-<div class="row">
+<div class="row" id="chat-container">
     <div class="col-md-4">
         <div>
             <nav class="chats-tabs">
-                <form method="post" id="search-chats-form" data-ajax="true" data-ajax-success="onChatSearch" data-ajax-url="/chat/rooms" data-url="/chat/rooms"
-                      autocomplete="off">
-                    <div class="form-group" style="display:flex;">
-                        <input class="form-control" name="keywords" value="" />
-                        <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
-                    </div>
-                </form>
-                <input class="form-control" type="search" id="search-input" />
 
+                <input class="form-control" type="search" id="search-input" autocomplete="off" />
                 <div class="chat-tab-links scrollable">
                     <div class="nav nav-tabs nav-fill" id="nav-tab" role="tablist">
                         @foreach (var item in Model.Rooms)
@@ -39,54 +32,59 @@
                             <input type="hidden" name="tailId" value="@(Model.Rooms.LastOrDefault()?.Id)" />
                             <button type="submit" class="btn" style="margin: auto;font-size: small;width: 100%;">Load More</button>
                         </form>
-
-                        @*@foreach (var user in Model.Users)
-                            {
-                                <a class="nav-item nav-link w-100 chat-tab-user-link" href="/" data-ajax="true" method="GET" data-ajax-success="onNewChatSuccess" data-ajax-url="@Url.Action("Private","Chat",new {  user.Id })">
-                                    <i class="fa fa-plus"></i>
-                                    @user.UserName
-                                </a>
-                            }
-
-                                <a class="btn"
-                                   style="margin: auto;font-size: small;width: 100%;"
-                                   id="more-users-btn"
-                                   href="/"
-                                   data-ajax="true"
-                                   method="GET"
-                                   data-ajax-success="onLoadUsers"
-                                   data-ajax-url="@Url.Action("Get","Users",new { tailId=Model.Users.LastOrDefault()?.Id })">
-                                    Load more
-                                </a>*@
                     </div>
                 </div>
             </nav>
         </div>
     </div>
     <div class="col-md-8">
+        <div class="mb-3 mt-2">
+            <h4 class="chat-heading d-inline-block align-middle" id="chat-heading"></h4>
+            <form id="invite-form">
+                <button type="submit"
+                        class="btn btn-primary btn-invite d-inline-block align-middle float-right">
+                    <i class="fa fa-plus-circle"></i>
+                </button>
+            </form>
+        </div>
+
         <div class="tab-content" id="nav-tabContent">
             @foreach (var item in Model.Rooms)
             {
                 <partial name="_chatTab" model="item" />
             }
         </div>
+
+        <form id="send-form" class="mt-2">
+            <div class="input-group">
+                <textarea class="form-control message-input" name="text" value="" placeholder="Type a message" required style="border-radius:10px;resize:none;"></textarea>
+                <button type="submit" class="btn">
+                    <i class="fa fa-telegram" style="font-size:36px;color:cornflowerblue"></i>
+                </button>
+            </div>
+        </form>
+
     </div>
 </div>
 
 <div id="hidden"></div>
 
 @section Scripts{
-    <script src="https://cdn.jsdelivr.net/gh/xcash/bootstrap-autocomplete@v2.2.2/dist/latest/bootstrap-autocomplete.min.js"></script>
     <script>
-        function onComplete() {
-            $("form input[name=text]").val("")
-        }
         (function ($) {
             $('#search-input').appSearch({
                 onUser: function (id) { alert("Starting chat with user " + id) },
                 onChat: function (id) { alert("Starting chat with id" + id) }
             });
+            const config = $('#chat-container').chat({
+                tabSelector: "#nav-tab",
+                currentUserId: "@identity.CurrentUserId",
+                messageContainerSelector:"#nav-tabContent"
+            });
+
+            window.config = config;
         })(jQuery)
+
     </script>
     <script>
         (function ($) {

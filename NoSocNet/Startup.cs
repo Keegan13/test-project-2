@@ -52,7 +52,7 @@ namespace NoSocNet
 
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
-                    Configuration.GetConnectionString("DefaultConnection")));
+                    Configuration.GetConnectionString("LocalConnection")));
 
             services.AddHttpContextAccessor();
 

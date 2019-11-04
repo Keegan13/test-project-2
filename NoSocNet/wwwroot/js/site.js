@@ -4,6 +4,8 @@
 // Write your JavaScript code.
 
 (function ($) {
+
+
     $.fn.hub = function (config) {
         const NotificationTypes = {
             Message: 0,
@@ -224,7 +226,9 @@
                 chatRoomStr += `<a class="btn btn-default load-next-chunk" data-type="${RESULT_TYPE.CHAT_ROOM}">more...</a>`
             }
 
-            searchResult.html(`<div class="autocomplete scrollable" style="position:absolute;width:100%;">${chatRoomStr}${userStr}</div>`).show();
+            let str = chatRoomStr + userStr || "Nothing found";
+
+            searchResult.html(`<div class="autocomplete scrollable" style="position:absolute;width:100%;">${str}</div>`).show();
         };
 
         element.on("input", function ($event) {
@@ -262,315 +266,302 @@
 
         });
 
-        //element.on("blur", function ($event) {
-        //    searchResult.hide();
-        //})
+        $(document).on("mouseup", function (e) {
+            if (!element.is(e.target) && element.has(e.target).length === 0 && !searchResult.is(e.target) && searchResult.has(e.target).length === 0) {
+                reset();
+            }
+        });
 
         element.on("search", function () {
             console.log("search event is triggered");
         })
 
     };
-})(jQuery);
 
-(function () {
 
-    $(document).on('click', 'a[data-toggle="tab"]', function (e) {
+    const renderChatRoomTab = ({ id, roomName, icon = "fa-user", active = false, updated = false }) => {
 
-        $(e.target).removeClass("updated");
-        let tabId = $(e.target).attr("aria-controls");
-        var regex = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/g;
-        let roomId = regex.exec(tabId);
+        return `<a class="nav-item nav-link d-block w-100 chat-tab-link" id="chat${id}-tab" data-toggle="tab" href="#chat${id}" role="tab" aria-controls="chat${id}" aria-selected="false"> <i class="fa fa-user"></i> ${roomName}</a> `;
 
-        //notify that current user have read all messages in current chat room
-        $.ajax({
-            url: '/chat/seen',
-            type: 'PUT',
-            data: `roomId = ${roomId} `
-        });
 
-        setTimeout(() => {
-            $(`#${tabId} `).find(".chat-messages").scrollTop(10000000);
-        }, 500);
+        //return `<div class="nav-item nav-link w-100 chat-tab-link ${(active ? "active" : "")} ${(updated ? "updated" : "")}"><i class="fa ${icon}"></i> ${roomName}</a > `;
+    };
 
-        // what you want to happen when mouseover and mouseout 
-        // occurs on elements that match '.dosomething'
-    });
+    const renderChatRoomMessages = ({ id, roomName }) => {
+        return `<div class="tab-pane fade" id = "chat${id}" role = "tabpanel" aria-labelledby="chat${id}-tab" > <div class="mb-3 mt-2"><h4 class="chat-heading d-inline-block align-middle">${roomName}</h4><a data-ajax="true" class="btn btn-primary btn-invite d-inline-block align-middle float-right" data-ajax-success="partialModal" data-ajax-method="GET" data-ajax-url="/Chat/Invite/${id}"><i class="fa fa-plus-circle"></i></a></div> <div class="chat-messages"></div> <form method="post" data-ajax="true" data-ajax-method="post" data-ajax-url="/Chat/Sent" data-ajax-success="onMessageSent" class="mt-2"><div class="input-group"><input type="hidden" name="roomid" value="${id}" /><textarea class="form-control" name="text" value="" placeholder="Type a message" required></textarea><button type="submit" class="btn"><i class="fa fa-telegram" style="font-size:36px;color:cornflowerblue"></i></button></div></form></div> `
+    };
 
-    $(document).on('chat.on.message', ".chat-messages", function (e) {
+    const renderMessage = ({ id, text, sendDate, senderId, senderUserName, currentUserId }) => {
+        const _sendDate = moment(new Date(sendDate)).format("YYYY-MM-DD hh:mm");
+        const senderCls = currentUserId === senderId ? 'outcomming' : 'incomming';
+        return `<div class="alert alert-primary ${senderCls} chat-message" role="alert" data-id="${id}"> <p>${text}</p> <hr><p class="message-info"><span class="message-date">${_sendDate}</span> ${senderUserName}</p></div>`;
+    };
+
+    const getFullHeight = (element) => {
         let scrollHeight = 0;
-        $(this).children().each(function () {
+        $(element).children().each(function () {
             scrollHeight = scrollHeight + $(this).outerHeight(true);
         });
-        console.log('scrolling with height: ' + scrollHeight);
-        $(this).scrollTop(scrollHeight);
+        return scrollHeight;
+    }
 
-        if (!e.message) return;
-        let chatTab = $(`a#chat${e.message.chatRoomId} -tab`);
-        if (chatTab && !chatTab.hasClass("active")) {
-            chatTab.addClass("updated");
+
+
+    $.fn.chat = function (config) {
+        const GUID = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/g;
+        const EVENTS = {
+            NEW_MESSAGE: 'chat.message',
+            NEW_CHAT: 'chat.room',
+            NEW_USER: 'chat.user',
+            TYPING: 'chat.typing',
+            NEW_MESSAGES: 'chat.messages',
+            ON_MESSAGE: 'chat.on.message',
+            ON_MESSAGE_SENT: 'chat.on.sent'
+        };
+        const container = $(this);
+
+        let _config = $.extend({
+            activeChatRoomId: null,
+            userId: null,
+            loadMessage: function (id) {
+                alert(`No handler for loadMessage, can't load message with id ${id}`);
+            },
+            loadChat: function (id) {
+
+            },
+            loadUser: function (id) {
+
+            },
+            messagesSeen: function (data) { console.log("mesages seen"); },
+            loadMessages: function ({ chatRoomId, tailMessageId }) {
+            },
+            sendMessage: function (data) {
+                console.log("Sending message");
+                console.log(data);
+            },
+            inviteUsers: function (data) {
+                console.log("Sending invite users");
+                console.log(data);
+            },
+            tabSelector: "#chat-tabs",
+            messageContainerSelector: ".chat-messages",
+            inviteFormSelector: "#invite-form",
+            sendFormSelector: "#send-form"
+
+        }, config);
+
+        const USER_ID = _config.userId;
+
+        let activeRoomId = _config.activeChatRoomId;
+
+
+        const selectTabs = () => {
+            const tabsContainer = container.find(_config.tabSelector);
+            if (!tabsContainer.length) {
+                throw new Error(`Tab container was not found using selector "${_config.tabSelector}" in container ${container.toString()}`);
+            }
+
+            return tabsContainer;
+        };
+
+        const selectMessages = () => {
+            const messageContainer = container.find(_config.messageContainerSelector);
+            if (!messageContainer.length) {
+                throw new Error(`Messages container was not found using selector "${_config.messageContainerSelector}" in container ${container.toString()}`);
+            }
+
+            return messageContainer;
+        };
+
+        const selectSendForm = () => {
+            const sendForm = container.find(_config.sendFormSelector);
+            if (!sendForm.length) {
+                throw new Error(`Send form was not found using selector "${_config.sendFormSelector}" in container ${container.toString()}`);
+            }
+
+            return sendForm;
+        };
+
+        const selectInviteForm = () => {
+            const inviteForm = container.find(_config.inviteFormSelector);
+            if (!inviteForm.length) {
+                throw new Error(`Invite form was not found using selector "${_config.inviteFormSelector}" in container ${container.toString()}`);
+            }
+
+            return inviteForm;
+        };
+
+
+
+
+        const selectActiveChat = () => {
+        };
+
+        const loadEarlierMessages = () => {
+            const messages = selectMessages();
+            const tail = messages.find(`#chat${activeRoomId}`).find('.chat-message').first();
+
+            if (tail && tail.id) {
+                loadMessages(activeRoomId, tail.id).then((data) => {
+                    if (data && data.length > 0) {
+                        const chatMessages = messages.find(`#chat${data[0].chatRoomId}`);
+                        if (chatMessages) {
+                            const html = data.reduce((html, message) => {
+                                html += renderMessage({ ...message, currentUserId, USER_ID });
+                                return html;
+                            }, "");
+                            $(html).prependTo(chatMessages);
+                        }
+                    }
+                });
+            }
+        };
+
+
+
+        const messageEmmiter = (message) => {
+            container.trigger(EVENTS.NEW_MESSAGE, { payload: message });
+        };
+
+        const newChatEmmiter = (chat) => {
+            container.trigger(EVENTS.NEW_CHAT, { payload: chat });
+        };
+
+        const newUserEmmiter = (user) => {
+            container.trigger(EVENTS.NEW_USER, { payload: user });
+        };
+
+        const typingEmmiter = (typing) => {
+            container.trigger(EVENTS.TYPING, { payload: typing });
+        };
+
+
+        $(document).on(EVENTS.NEW_MESSAGE, function ({ payload }) {
+            const message = payload;
+            const messages = selectMessages();
+            const chatMessages = messages.find(`#chat${message.chatRoomId}-tab`);
+
+            if (chatMessages.length === 1) {
+                const html = renderMessage({ ...message, currentUserId: _config.userId })
+
+                $(html).appendTo(chatMessages);
+                $(chatMessages).trigger(EVENTS.ON_MESSAGE, { payload: message });
+            }
+
+            if (chatMessages.length === 0) {
+                _config.loadChat(message.chatRoomId).then((data) => {
+                    newChatEmmiter(data);
+                })
+            }
+        });
+
+        $(document).on(EVENTS.ON_MESSAGE, _config.messageContainerSelector, function ({ payload }) {
+            const message = payload;
+            if (activeRoomId !== message.chatRoomId) {
+                const chatTab = selectTabs().find(`chat${message.chatRoomId}-tab`);
+                if (chatTab) {
+                    chatTab.addClass("updated");
+                }
+            }
+        });
+
+        selectSendForm().on('submit', ($event) => {
+            $event.preventDefault();
+            $event.stopPropagation();
+            _config.sendMessage({ text: $(this).find("[name=text]").val(), chatRoomId: activeRoomId });
+        });
+
+        selectInviteForm().on('submit', ($event) => {
+            $event.preventDefault();
+            $event.stopPropagation();
+            _config.inviteUsers({ chatRoomId: activeRoomId });
+        });
+
+        const bindScroll = () => {
+            $(document).on('scroll', _config.messageContainerSelector, function (e) {
+                console.log('catching scroll event');
+
+                const fullHeight = getFullHeight(this);
+                const elementHeight = $(this).outerHeight(true);
+                const scrollHeight = $(this).prop('scrollHeight');
+                const almostTop = () => {
+                    return true;
+                };
+                const almostBottom = () => {
+                    return true;
+                };
+
+                if (almostTop()) {
+                    loadEarlierMessages();
+                }
+                if (almostBottom()) {
+                    messagesSeen(activeRoomId);
+                }
+                ///load messages here
+                //let position = $(e.target).scrollTop();
+                //if (position < 200) {
+
+                //}
+                //console.log();
+            });
         }
-    });
 
-    //$('.chat-messages').on('scroll', function (e) {
-    //    console.log('scroll event');
-    //});
-    $(document).on('scroll', '.chat-messages', function (e) {
-        console.log('catching scroll event');
-        //let position = $(e.target).scrollTop();
-        //if (position < 200) {
+        bindScroll();
 
-        //}
-        //console.log();
-    });
+        $(document).on(EVENTS.NEW_CHAT, function ({ payload }) {
+            const chat = payload;
+            const tabs = selectTabs();
+            const messages = selectMessages();
 
-    $("#search-chats-form").on('change', function (e) {
-        if (e.target.value == "") {
-            $(".chat-tab-link.restore").removeClass("restore").show();
+            if (messages.find(`#chat${chat.id}`).length == 0) {
+                const html = renderChatRoomMessages(chat);
+                $(html).appendTo(messages);
+            }
+
+            if (tabs.find(`#chat${chat.id}-tab`).length == 0) {
+                const html = renderChatRoomTab(chat);
+                $(html).appendTo(tabs);
+            };
+
+            if (chat.isFocus) {
+                tabs.find(`#chat${chat.id}-tab`).tab('show');
+            }
+
+        });
+        $(document).on(EVENTS.NEW_USER, function ({ payload }) { });
+
+        $(document).on(EVENTS.TYPING, function ({ payload }) { });
+
+        $(document).on(EVENTS.ON_MESSAGE_SENT, function () {
+            const sentForm = selectSendForm();
+            sentForm.find("textarea").val("");
+        });
+
+        $(document).on('click', 'a[data-toggle="tab"]', function (e) {
+            $(e.target).removeClass("updated");
+            const id = $(this).data('id');
+            messagesSeen(id);
+        });
+
+
+        return {
+            events: {
+                triggerNewMessage: messageEmmiter,
+                triggerNewChat: newChatEmmiter,
+                triggerNewUser: newUserEmmiter,
+                triggerNewTyping: typingEmmiter
+            }
         }
-    });
-})();
+    }
+})(jQuery);
 
 function partialModal(data) {
     //when partial view returned to modal
     $("#shared-modal").html(data).modal("show");
 }
 
-function onAjaxError() {
-
-}
-function onComplete(data) {
-    console.log("Implement onComplete")
-}
-function onNewParticipants(data) {
-    //when new users join chat
-
-}
-function onMessageSent(data) {
-    let roomid = data.chatRoomId;
-    $(`#chat${roomid} form textarea`).val("");
-}
-
 function clearModal() {
     console.log("Closing modal");
     $.modal.close();
     $('#shared-modal').html('');
-}
-
-function onNewChatSuccess() {
-    $(this).remove();
-}
-
-function onNewParticipants(content) {
-    console.log(content);
-}
-
-function remove(element) {
-    $(element).remove();
-}
-
-function onLoadMoreMessages(data) {
-
-    if (data && data.length > 0) {
-
-        // inserst messages
-        let content = data.reduce((agg, next) => agg += renderMessage(next), '');
-        $(content).insertAfter(this);
-
-        //change the tail id
-        let tailId = data[0].id;
-        let url = $(this).attr('data-ajax-url');
-        console.log(url);
-        $(this).attr('data-ajax-url', url.replace(/tail=([0-9]+)/gi, () => ('tail=' + tailId.toString())));
-    }
-    if (data.length == 0) {
-        $(this).remove();
-        alert('no more messages');
-    }
-
-
-}
-
-function onLoadUsers(data) {
-    if (data && data.length > 0) {
-        //insert tab link
-        var html = data.map(el => {
-            return `<a class="nav-item nav-link w-100 chat-tab-user-link" href = "/" data-ajax="true" method="GET" data-ajax-success="onNewChatSuccess" data-ajax-url="/Chat/Private/${el.id}"> <i class="fa fa-plus"></i>${el.userName}</a>`;
-        }).reduce((curr, next) => curr += next);
-
-        $(html).insertBefore("#more-users-btn");
-
-
-
-        let url = $('#more-users-btn').attr('data-ajax-url');
-        let tailId = data[data.length - 1].id;
-        $(this).attr('data-ajax-url', url.replace(/tailId=(.*)/gi, () => ('tailId=' + tailId.toString())));
-    }
-
-    if (data.length == 0) {
-        $(this).remove();
-        alert('no more users');
-    }
-
-}
-
-function container() {
-    return $('#nav-tabContent');
-}
-
-function tabLink() {
-    return $('#nav-tab');
-}
-
-function getCurrentUser() {
-    return $.currentUserId;
-}
-
-function appendChatLinkTo(element, chat) {
-    const { id, roomName } = chat;
-    if (!roomName) {
-        roomName = chat.participants.filter(x => x.id != $.currentUserId).reduce((agg, next) => agg += ", " + next);
-    }
-
-    $(`<a class="nav-item nav-link d-block w-100 chat-tab-link" id="chat${id}-tab" data-toggle="tab" href="#chat${id}" role="tab" aria-controls="chat${id}" aria-selected="false"> <i class="fa fa-user"></i> ${roomName}</a> `).prependTo(element);
-}
-
-function appendChatTo(element, chat) {
-    $(`<div class="tab-pane fade" id = "chat${chat.id}" role = "tabpanel" aria-labelledby="chat${chat.id}-tab" > <div class="mb-3 mt-2"><h4 class="chat-heading d-inline-block align-middle">${chat.roomName}</h4><a data-ajax="true" class="btn btn-primary btn-invite d-inline-block align-middle float-right" data-ajax-success="partialModal" data-ajax-method="GET" data-ajax-url="/Chat/Invite/${chat.id}"><i class="fa fa-plus-circle"></i></a></div> <div class="chat-messages"></div> <form method="post" data-ajax="true" data-ajax-method="post" data-ajax-url="/Chat/Sent" data-ajax-success="onMessageSent" class="mt-2"><div class="input-group"><input type="hidden" name="roomid" value="${chat.id}" /><textarea class="form-control" name="text" value="" placeholder="Type a message" required></textarea><button type="submit" class="btn"><i class="fa fa-telegram" style="font-size:36px;color:cornflowerblue"></i></button></div></form></div> `)
-        .appendTo(element);
-}
-
-function appendChat(chat) {
-    const tabContainer = container();
-    const tabLinkContainer = tabLink();
-
-    let userIdregex = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/g;
-
-    //remove any link to user
-    //tabLinkContainer.find("a[data-ajax-url]").filter((idx, item) => {
-    //    let match = userIdregex.exec($(item).attr("data-ajax-url"));
-    //    let userId = match && match.length > 0 ? match[0] : "";
-    //    return chat.participants.some(p => p.id == userId);
-    //}).remove();
-
-    if ($(`#chat${chat.id} `).length == 0) {
-        appendChatTo(tabContainer, chat);
-    }
-
-    if ($(`#chat${chat.id} -tab`).length == 0) {
-        appendChatLinkTo(tabLinkContainer, chat);
-    };
-
-    if (chat.isFocus) {
-        $(`#chat${chat.id} -tab`).tab('show');
-    }
-}
-
-function renderMessage(msg) {
-    let senderCls = getCurrentUser() === msg.senderId ? 'outcomming' : 'incomming';
-    return `<div class="alert alert-primary ${senderCls}" role = "alert" > <p>${msg.text}</p> <hr><p class="message-info"><span class="message-date">${msg.sendDate}</span> ${msg.senderUserName}</p></div>`;
-}
-function appenMessageTo(chatTab, msg) {
-    msg.sendDate = moment(new Date(msg.sendDate)).format("YYYY-MM-DD hh:mm");
-
-    $(renderMessage(msg)).appendTo(chatTab)
-    $(chatTab).trigger({
-        type: 'chat.on.message',
-        message: msg
-    });
-}
-
-
-
-
-function appenMessage(msg) {
-    var chatTabsContainer = container();
-    var chatTab = chatTabsContainer.find("#chat" + msg.chatRoomId + " .chat-messages");
-
-    if (chatTab.length > 0) {
-        appenMessageTo(chatTab, msg);
-        return;
-    }
-
-    $.ajax({
-        url: '/Chat/Room',
-        type: 'post',
-        contentType: 'application/x-www-form-urlencoded',
-        data: {
-            roomId: msg.chatRoomId
-        }
-    }).then(
-        function (data) {
-            appendChat(data);
-            appenMessage(msg);
-        },
-        function (jqXHR, textStatus, errorThrown) {
-            //bad status code
-            return;
-        }
-    ).catch(function (error) {
-        // ...
-    });
-};
-
-
-function onLoadMessages(data) {
-    let container = $();
-    $("<p>Messages</p>").prepend(container)
-}
-
-var roomLinkTemplate = function (data) {
-    const { id, roomName } = data
-    return `<a class="nav-item nav-link w-100 chat-tab-link" id = "chat${id}-tab" data-toggle="tab" href="#chat${id}" role="tab" aria-controls="chat${id}" aria-selected="false" > <i class="fa fa-user"></i> ${roomName}</a > `;
-}
-
-var roomTemplate = function (data) {
-    const { id, roomName } = data
-    return `<div class="tab-pane fade" id = "chat${id}" role = "tabpanel" aria-labelledby="chat${id}-tab" > <div class="mb-3 mt-2"><h4 class="chat-heading d-inline-block align-middle">${roomName}</h4><a data-ajax="true" class="btn btn-primary btn-invite d-inline-block align-middle float-right" data-ajax-success="partialModal" data-ajax-method="GET" data-ajax-url="/Chat/Invite/${id}"><i class="fa fa-plus-circle"></i></a></div> <div class="chat-messages"></div> <form method="post" data-ajax="true" data-ajax-method="post" data-ajax-url="/Chat/Sent" data-ajax-success="onMessageSent" class="mt-2"><div class="input-group"><input type="hidden" name="roomid" value="${id}" /><textarea class="form-control" name="text" value="" placeholder="Type a message" required></textarea><button type="submit" class="btn"><i class="fa fa-telegram" style="font-size:36px;color:cornflowerblue"></i></button></div></form></div > `;
-}
-
-function renderTabLinksToString(data) {
-    if (data && data.length > 0) {
-        return data.map(el => roomLinkTemplate(el)).reduce((agg, next) => agg += next);
-    }
-
-    return '';
-}
-
-function renderTabToString(data) {
-    if (data && data.length > 0) {
-        return data.map(el => roomTemplate(el)).reduce((agg, next) => agg += next);
-    }
-
-    return '';
-}
-
-function onLoadChats(data) {
-    let form = $('#more-chats-form');
-
-    if (data.length == 0) {
-        form.find("button").remove();
-        return;
-    }
-
-    let last = data[data.length - 1];
-
-    form.find("input[name='tailId']").val(last.id);
-
-    var linksHtml = renderTabLinksToString(data);
-    $(linksHtml).insertBefore(form);
-
-
-    var tabsHtml = renderTabToString(data);
-    $(tabsHtml).appendTo(container());
-
-}
-
-function onChatSearch(data) {
-    $(".chat-tab-link").addClass("restore").hide();
-    if (data && data.length > 0) {
-        data.forEach(function (item) {
-            appendChat(item);
-        });
-    }
 }
