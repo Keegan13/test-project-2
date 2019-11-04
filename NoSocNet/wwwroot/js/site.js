@@ -68,9 +68,22 @@
         var frame = $(`<iframe name="background-worker" id="background-worker" src="${_url}"></iframe>`)
             .appendTo(this);
     };
+
+    $.fn.appSearch = function () {
+        const element = $(this);
+
+
+        element.on("change", function () {
+        });
+
+        element.on("search", function () {
+        })
+
+    };
 })(jQuery);
 
 (function () {
+
     $(document).on('click', 'a[data-toggle="tab"]', function (e) {
 
         $(e.target).removeClass("updated");

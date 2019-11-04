@@ -9,5 +9,7 @@ namespace NoSocNet.Domain.Interfaces
         Task<IEnumerable<UserEntity>> GetNonParticipantsForRoomAsync(string userId, string keywords = null, int take = 10, int skip = 0);
 
         Task<UserEntity> FindByIdAsync(string id);
+
+        Task<ICollection<UserEntity>> Search(string keywords, string currentUserId,int skip = 0, int take = 10);
     }
 }

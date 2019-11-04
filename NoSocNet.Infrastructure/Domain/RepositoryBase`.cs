@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace NoSocNet.Infrastructure.Domain
 {
-    public class EFCoreRepositoryBase<TEntity, TKey> : IRepository<TEntity, TKey> where TEntity : class, IIdentifiable<TKey>
+    public abstract class EFCoreRepositoryBase<TEntity, TKey> : IRepository<TEntity, TKey> where TEntity : class, IIdentifiable<TKey>
     {
         protected readonly IUnitOfWork unitOfWork;
         protected readonly ApplicationDbContext context;
@@ -29,5 +29,8 @@ namespace NoSocNet.Infrastructure.Domain
         {
             return await this.context.Set<TEntity>().FindAsync(keys);
         }
+
+
+        public abstract Task<ICollection<TEntity>> Search(string keywords, string currentUserId, int skip = 0, int take = 10);
     }
 }

@@ -1,0 +1,14 @@
+﻿@model IEnumerable<ChatRoomViewModel>
+@{
+
+    int chunk = ViewBag.Chunk != null && ViewBag.Chunk > 1 ? ViewBag.Chunk : 1;
+}
+
+@foreach (var item in Model)
+{
+    <div>
+        @item.RoomName
+    </div>
+}
+
+<a class="btn btn-default" data-ajax="true" data-ajax-url="@Url.Action("Users","Search",new { chunk=chunk })">More</a>

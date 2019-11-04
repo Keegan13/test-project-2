@@ -13,7 +13,7 @@ namespace NoSocNet.Infrastructure.Domain
         public EFCoreUserRepository(ApplicationDbContext context) : base(context)
         {
         }
-        public async Task<IEnumerable<NoSocNet.Domain.Models.UserEntity>> GetNonParticipantsForRoomAsync(string userId, string keywords = null, int take = 10, int skip = 0)
+        public async Task<IEnumerable<UserEntity>> GetNonParticipantsForRoomAsync(string userId, string keywords = null, int take = 10, int skip = 0)
         {
             var query = this.context.Set<UserEntity>()
               .Where(x => x.Id != userId && x.UserRooms.Where(ur => ur.ChatRoom.IsPrivate).All(ur => !ur.ChatRoom.UserRooms.Any(r => r.UserId == userId)));
@@ -28,9 +28,33 @@ namespace NoSocNet.Infrastructure.Domain
             return data;
         }
 
-        async Task<NoSocNet.Domain.Models.UserEntity> IUserRepository.FindByIdAsync(string id)
+        public async override Task<ICollection<UserEntity>> Search(string keywords, string currentUserId, int skip = 0, int take = 10)
         {
-            return await base.FindByIdAsync(id);
+            if (skip < 0)
+            {
+                throw new ArgumentException(nameof(skip));
+            }
+
+            if (take <= 0)
+            {
+                throw new ArgumentException(nameof(take));
+            }
+
+            if (String.IsNullOrWhiteSpace(currentUserId))
+            {
+                throw new ArgumentException(nameof(currentUserId));
+            }
+
+            IQueryable<UserEntity> query = this.context
+                .Set<UserEntity>()
+                .Where(x => x.Id != currentUserId);
+
+            if (!String.IsNullOrWhiteSpace(keywords))
+            {
+                query = query.Where(x => x.UserName.Contains(keywords) || x.Email.Contains(keywords));
+            }
+
+            return await query.Skip(skip).Take(take).ToListAsync();
         }
     }
 }

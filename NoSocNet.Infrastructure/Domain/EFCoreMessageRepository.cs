@@ -13,6 +13,7 @@ namespace NoSocNet.Infrastructure.Domain
     {
         public EFCoreMessageRepository(ApplicationDbContext context) : base(context)
         {
+
         }
         public async Task<IEnumerable<MessageEntity>> GetMessagesAsync(string chatRoomId, int count, int? tailMessageId = null)
         {
@@ -50,6 +51,35 @@ namespace NoSocNet.Infrastructure.Domain
                   .ToListAsync();
 
             return data.OrderBy(x => x.SendDate);
+        }
+
+        public override async Task<ICollection<MessageEntity>> Search(string keywords, string currentUserId, int skip = 0, int take = 10)
+        {
+            if (skip < 0)
+            {
+                throw new ArgumentException(nameof(skip));
+            }
+
+            if (take <= 0)
+            {
+                throw new ArgumentException(nameof(take));
+            }
+
+            if (String.IsNullOrWhiteSpace(currentUserId))
+            {
+                throw new ArgumentException(nameof(currentUserId));
+            }
+
+            IQueryable<MessageEntity> query = this.context
+                .Set<MessageEntity>()
+                .Where(x => x.SenderUserId == currentUserId);
+
+            if (!String.IsNullOrWhiteSpace(keywords))
+            {
+                query = query.Where(x => x.Text.Contains(keywords));
+            }
+
+            return await query.Skip(skip).Take(take).ToListAsync();
         }
 
         public async Task SetReadByUserAsync(string userId, string chatRoomId, int? tillMessageId = null)

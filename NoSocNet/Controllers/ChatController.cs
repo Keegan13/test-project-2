@@ -126,9 +126,9 @@ namespace NoSocNet.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> InviteList(UserFilterModel filter)
+        public async Task<IActionResult> InviteList(string keywords, int page = 1)
         {
-            var result = await userRepo.GetNonParticipantsForRoomAsync(identity.CurrentUserId, filter.Keywords, 10, (filter.Page - 1) * 10);
+            var result = await userRepo.GetNonParticipantsForRoomAsync(identity.CurrentUserId, keywords, 10, (page - 1) * 10);
 
             var model = result.Select(x => mapper.Map<UserEntity, UserViewModel>(x)).ToList();
 
@@ -187,6 +187,7 @@ namespace NoSocNet.Controllers
         {
             return Json(new[] { "1", "123" });
         }
+       
         [HttpPost]
         public async Task<IActionResult> Rooms([FromForm] string keywords = null)
         {

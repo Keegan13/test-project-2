@@ -33,11 +33,11 @@ namespace NoSocNet.Controllers.API
         }
 
         [HttpGet]
-        public async Task<IEnumerable<UserViewModel>> Get(UserFilterModel filter)
+        public async Task<IEnumerable<UserViewModel>> Get(string keywords)
         {
             string currentUserId = identity.CurrentUserId;
 
-            var result = await repo.GetNonParticipantsForRoomAsync(currentUserId, filter.Keywords, 10, 0);
+            var result = await repo.GetNonParticipantsForRoomAsync(currentUserId, keywords, 10, 0);
 
             return result.Select(x => mapper.Map<UserViewModel>(x)).ToArray();
         }

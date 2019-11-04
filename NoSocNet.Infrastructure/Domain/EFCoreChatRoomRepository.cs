@@ -126,6 +126,35 @@ namespace NoSocNet.Infrastructure.Domain
                 .ToArrayAsync())
                 .ToDictionary(x => x.Id, x => x.HasUnread);
         }
+
+        public override async Task<ICollection<ChatRoomEntity>> Search(string keywords, string currentUserId, int skip = 0, int take = 10)
+        {
+            if (skip < 0)
+            {
+                throw new ArgumentException(nameof(skip));
+            }
+
+            if (take <= 0)
+            {
+                throw new ArgumentException(nameof(take));
+            }
+
+            if (String.IsNullOrWhiteSpace(currentUserId))
+            { 
+                throw new ArgumentException(nameof(currentUserId));
+            }
+
+            IQueryable<ChatRoomEntity> query = this.context
+                .Set<ChatRoomEntity>()
+                .Where(x => x.UserRooms.Any(ur => ur.UserId == currentUserId));
+
+            if (!String.IsNullOrWhiteSpace(keywords))
+            {
+                query = query.Where(x => x.RoomName.Contains(keywords) || x.UserRooms.Any(ur => ur.User.UserName.Contains(keywords) || ur.User.Email.Contains(keywords)));
+            }
+
+            return await query.Skip(skip).Take(take).ToListAsync();
+        }
     }
 }
 

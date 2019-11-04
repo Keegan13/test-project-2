@@ -2,7 +2,7 @@
 @{
     Layout = null;
 }
-@inject IIdentityService<User> identity
+@inject IIdentityService identity
 
 <div class="alert alert-primary @(Model.SenderId==identity.CurrentUserId?"outcomming":"incomming")" role="alert">
     <p>@Model.Text</p>

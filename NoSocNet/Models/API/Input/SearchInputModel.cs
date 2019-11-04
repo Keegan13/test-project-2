@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NoSocNet.Models
+namespace NoSocNet.Models.API.Input
 {
-    public class UserFilterModel : PaginationModel
+    public class SearchInputModel
     {
         public string Keywords { get; set; }
 
-        public string ChatRoomId { get; set; }
+        public int Chunk { get; set; }
     }
 }
