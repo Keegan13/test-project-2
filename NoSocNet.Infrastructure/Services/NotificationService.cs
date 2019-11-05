@@ -13,7 +13,7 @@ namespace NoSocNet.Infrastructure.Services
         {
             try
             {
-                base.Notify(new TypedNotification((HubNotificationType)notification.Type, notification.Body), notification.Receivers.ToArray());
+                base.Notify(new TypedNotification((AppNotificationType)notification.Type, notification.Body), notification.Receivers.ToArray());
                 return Task.FromResult(true);
             }
             catch (Exception ex)

@@ -1,6 +1,6 @@
 ﻿namespace NoSocNet.Infrastructure.Services.Notificator
 {
-    public enum HubNotificationType
+    public enum AppNotificationType
     {
         Message,
         ChatJoin,

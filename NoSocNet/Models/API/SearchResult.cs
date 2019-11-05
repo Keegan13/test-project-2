@@ -3,13 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NoSocNet.Models
+namespace NoSocNet.Models.API
 {
-    public class UserSearchResult
-    {
-        public IEnumerable<UserViewModel> Users { get; set; }
-    }
-
     public class SearchResult
     { 
         public IEnumerable<MessageViewModel> Messages { get; set; }

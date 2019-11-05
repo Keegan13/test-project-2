@@ -97,7 +97,7 @@ namespace NoSocNet
             {
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=Chat}/{action=Index}/{id?}");
+                    template: "{controller=Home}/{action=Index}/{id?}");
                 routes.MapRoute(
                     name: "api",
                     template: "api/{controller}/{id?}",

@@ -1,6 +1,12 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Html;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NoSocNet.Core.Interfaces;
 using NoSocNet.Core.Models;
@@ -8,24 +14,20 @@ using NoSocNet.Extensions;
 using NoSocNet.Infrastructure.Services;
 using NoSocNet.Infrastructure.Services.Notificator;
 using NoSocNet.Models;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace NoSocNet.Controllers
+namespace NoSocNet.Controllers.API
 {
+    [Route("api/[controller]")]
     [Authorize]
-    public class HubController : Controller
+    [ApiController]
+    public class LiveController : ControllerBase
     {
         public readonly IIdentityService identity;
         private readonly NotificationService notificator;
         private readonly NotificationObserver observer;
         private readonly IMapper mapper;
 
-        public HubController(
+        public LiveController(
             IMapper mapper,
             NotificationService notificator,
             IIdentityService identity,
@@ -40,21 +42,20 @@ namespace NoSocNet.Controllers
 
 
         [HttpGet]
-        [ActionName("Index")]
-        public async Task<IActionResult> Get(Mode? mode = null)
+        public ContentResult Get()
         {
-            var model = new HubResponseViewModel();
+            string connectionId = null;
 
             if (HttpContext.Request.Cookies.TryGetValue("connectionId", out string existingConnection) && Guid.TryParse(existingConnection, out Guid connection) && this.notificator.Subscribe(connection, null))
             {
-                model.ConnectionId = existingConnection;
+                connectionId = existingConnection;
             }
             else
             {
-                model.ConnectionId = this.notificator.Connect(this.identity.CurrentUserId).ToString();
+                connectionId = this.notificator.Connect(this.identity.CurrentUserId).ToString();
             }
 
-            HttpContext.Response.Cookies.Append("connectionId", model.ConnectionId.ToString(), new Microsoft.AspNetCore.Http.CookieOptions
+            HttpContext.Response.Cookies.Append("connectionId", connectionId.ToString(), new Microsoft.AspNetCore.Http.CookieOptions
             {
                 Expires = DateTime.Now.AddDays(1)
             });
@@ -63,15 +64,17 @@ namespace NoSocNet.Controllers
             //{
             //    return await this.Put(model.ConnectionId.ToString());
             //}
-
-            return PartialView("_HiddenFrame", model);
+            return new ContentResult
+            {
+                Content = $"<script src=\"/js/live.js\"></script><script>connectLive(\"/api/live\",\"{connectionId}\")</script>",
+                ContentType = "text/html",
+                StatusCode = 200
+            };
         }
-
 
         //long pulling
         [HttpPost]
-        [ActionName("Index")]
-        public IActionResult Post(string connectionId)
+        public TypedNotification Post([FromForm] string connectionId)
         {
             if (!String.IsNullOrEmpty(connectionId))
             {
@@ -79,34 +82,34 @@ namespace NoSocNet.Controllers
 
                 if (notification == null)
                 {
-                    return Json(null);
+                    return null;
                 }
 
-                if (notification.Type == HubNotificationType.ChatJoin)
+                if (notification.Type == AppNotificationType.ChatJoin)
                 {
                     var dto = notification.Notification as NewChatUser;
                     ChatJoinViewModel vm = mapper.Map<NewChatUser, ChatJoinViewModel>(dto);
                     vm.ChatName = dto.Room.GetRoomName(identity.CurrentUserId);
 
-                    return Json(new TypedNotification(HubNotificationType.ChatJoin, vm));
+                    return new TypedNotification(AppNotificationType.ChatJoin, vm);
                 }
 
-                if (notification.Type == HubNotificationType.Message)
+                if (notification.Type == AppNotificationType.Message)
                 {
-                    return Json(new TypedNotification(HubNotificationType.Message, mapper.Map<MessageDto, MessageViewModel>(notification.Notification as MessageDto)));
+                    return new TypedNotification(AppNotificationType.Message, mapper.Map<MessageDto, MessageViewModel>(notification.Notification as MessageDto));
                 }
 
-                if (notification.Type == HubNotificationType.NewChat)
+                if (notification.Type == AppNotificationType.NewChat)
                 {
                     var dto = notification.Notification as ChatRoomDto;
                     ChatRoomViewModel vm = mapper.Map<ChatRoomDto, ChatRoomViewModel>(dto);
                     vm.RoomName = dto.GetRoomName(identity.CurrentUserId);
 
-                    return Json(new TypedNotification(HubNotificationType.NewChat, vm));
+                    return new TypedNotification(AppNotificationType.NewChat, vm);
                 }
 
 
-                return Json(notification);
+                return notification;
             }
 
             return null;
@@ -122,8 +125,7 @@ namespace NoSocNet.Controllers
 
         //Forever frame
         [HttpPut]
-        [ActionName("Index")]
-        public async Task<IActionResult> Put(string connecntionId)
+        public async Task<FileStreamResult> Put(string connecntionId)
         {
             var body = HttpContext.Response.Body;
             HttpContext.Response.ContentType = "text/html";

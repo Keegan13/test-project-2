@@ -6,7 +6,7 @@
 (function ($) {
 
 
-    $.fn.hub = function (config) {
+    $.fn.live = function (config) {
         const NotificationTypes = {
             Message: 0,
             ChatJoin: 1,
@@ -15,22 +15,22 @@
         };
         let _config = $.extend({
             onMessage: function (message) {
-                console.log("Received new message noitification from hub");
+                console.log("Received new message noitification");
                 console.log(message);
                 console.log("Provide callback handler for 'onMessage' notifications");
             },
             onNewChat: function (chat) {
-                console.log("Received new chat notification from hub ");
+                console.log("Received new chat notification");
                 console.log(chat);
                 console.log("Provide callback handler for 'onNewChat' notifications");
             },
             onChatJoin: function (chatJoin) {
-                console.log("Received new user joined from hub ");
+                console.log("Received new user joined");
                 console.log(chatJoin);
                 console.log("Provide callback handler for 'onChatJoin' notifications");
             },
             onTyping: function (typing) {
-                console.log("Received typing notification from hub ");
+                console.log("Received typing notification");
                 console.log(typing);
                 console.log("Provide callback handler for 'onTyping' notifications");
             },
@@ -39,7 +39,7 @@
         }, config);
 
         if (!config.host) {
-            console.log("Host is not defined in configuration, please set 'host' in call to hub({host:'https://myurl'})");
+            console.log("Host is not defined in configuration, please set 'host' ({host:'https://myurl'})");
         }
 
         let _onMessageHandler = function (data) {
@@ -61,7 +61,7 @@
             _onMessageHandler(notification);
         };
 
-        let _url = `${config.host}?callback=_responseHandler`;
+        let _url = `${config.host}`;
 
         if (_config.mode == "ForeverFrame") {
             _url += `&mode=foreverFrame`;

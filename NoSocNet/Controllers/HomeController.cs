@@ -11,6 +11,9 @@ using NoSocNet.Domain.Models;
 using NoSocNet.Infrastructure.Seeding;
 using NoSocNet.Models;
 using NoSocNet.Infrastructure.Data;
+using NoSocNet.Core.Interfaces;
+using AutoMapper;
+using NoSocNet.Extensions;
 
 namespace NoSocNet.Controllers
 {
@@ -18,14 +21,45 @@ namespace NoSocNet.Controllers
     {
         private readonly ApplicationDbContext context;
         private readonly UserManager<UserEntity> userManager;
-        public HomeController(ApplicationDbContext context, UserManager<UserEntity> userManager)
+        private readonly IIdentityService identity;
+        private readonly IChatRoomRepository roomRepo;
+        private readonly IMapper mapper;
+        public HomeController(
+            ApplicationDbContext context,
+            UserManager<UserEntity> userManager,
+            IIdentityService identity,
+            IChatRoomRepository roomRepo,
+            IMapper mapper)
         {
             this.context = context;
             this.userManager = userManager;
+            this.mapper = mapper;
+            this.roomRepo = roomRepo;
+            this.identity = identity;
         }
-        public IActionResult Index()
+        public async Task<IActionResult> Index(string roomId = null, string[] loadedRoomsIds = null)
         {
-            return View();
+            string userId = this.identity.CurrentUserId;
+
+            var rooms = (await roomRepo.GetRecentChatRoomsAsync(userId, loadedRoomsIds.Select(x => x).ToArray()));
+
+            var reads = await roomRepo.GetHasUnreadAsync(rooms.Select(x => x.Id).ToArray(), userId);
+
+            if (!String.IsNullOrEmpty(roomId) && rooms.Any(x => x.Id == roomId))
+            {
+                ViewBag.SelectedId = roomId.ToLower();
+            }
+
+            return View(new IndexViewModel
+            {
+                Rooms = rooms.Select(x =>
+                {
+                    var vm = mapper.Map<ChatRoomEntity, ChatRoomViewModel>(x);
+                    vm.HasUnread = reads[vm.Id];
+                    vm.RoomName = vm.GetRoomName(userId);
+                    return vm;
+                })
+            });
         }
 
         public IActionResult Privacy()

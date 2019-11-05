@@ -14,10 +14,12 @@ namespace NoSocNet.Infrastructure.Services
         public EFCoreUserRepository(ApplicationDbContext context) : base(context)
         {
         }
-        public async Task<IEnumerable<UserEntity>> GetNonParticipantsForRoomAsync(string userId, string keywords = null, int take = 10, int skip = 0)
+
+        public async Task<IEnumerable<UserEntity>> GetNonParticipantsForRoomAsync(string chatRoomId, string userId, string keywords = null, int take = 10, int skip = 0)
         {
-            var query = this.context.Set<UserEntity>()
-              .Where(x => x.Id != userId && x.UserRooms.Where(ur => ur.ChatRoom.IsPrivate).All(ur => !ur.ChatRoom.UserRooms.Any(r => r.UserId == userId)));
+            var query = this.context
+                .Set<UserEntity>()
+                .Where(x => x.Id != userId && !x.UserRooms.Any(ur => ur.ChatRoomId == chatRoomId));
 
 
             if (!String.IsNullOrWhiteSpace(keywords))
@@ -25,7 +27,11 @@ namespace NoSocNet.Infrastructure.Services
                 query = query.Where(x => x.UserName.Contains(keywords));
             }
 
-            var data = await query.Skip(skip).Take(take).ToListAsync();
+            var data = await query
+                .Skip(skip)
+                .Take(take)
+                .ToListAsync();
+
             return data;
         }
 

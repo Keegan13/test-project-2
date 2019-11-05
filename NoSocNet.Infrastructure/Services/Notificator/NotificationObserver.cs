@@ -12,18 +12,18 @@ namespace NoSocNet.Infrastructure.Services.Notificator
     {
         public Guid ConnectionId { get; private set; }
 
-        private readonly NotificationService hub;
+        private readonly NotificationService notificationService;
         private readonly ManualResetEvent notificator;
         private TypedNotification Notification = null;
 
         private bool notificationReceived = false;
 
         public NotificationObserver(
-            NotificationService hub
+            NotificationService notificationService
             )
         {
-            this.hub = hub;
-            this.notificator = hub.GetNotificator();
+            this.notificationService = notificationService;
+            this.notificator = notificationService.GetNotificator();
         }
 
         public virtual TypedNotification GetMessageOrDefaultAsync(Guid connectionId, int? timeOut = null)
@@ -33,7 +33,7 @@ namespace NoSocNet.Infrastructure.Services.Notificator
             DateTime globTimeout = timeOut.HasValue ? DateTime.Now.AddMilliseconds(timeOut.Value) : DateTime.Now.AddDays(1);
             var handler = new EventHandler<NotificationArguments>(onMessageHandler);
 
-            this.hub.Subscribe(this.ConnectionId, handler);
+            this.notificationService.Subscribe(this.ConnectionId, handler);
 
             try
             {
@@ -55,7 +55,7 @@ namespace NoSocNet.Infrastructure.Services.Notificator
             }
             finally
             {
-                this.hub.Unsubscribe(handler);
+                this.notificationService.Unsubscribe(handler);
             }
 
             return this.Notification;

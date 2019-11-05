@@ -9,6 +9,6 @@
 <div class="tab-pane chat-messages scrollable fade @(Model.Id==selectedId?"show active":"")" id="chat@(Model.Id)" role="tabpanel" aria-labelledby="chat@(Model.Id)-tab" data-id="@Model.Id">
     @foreach (var message in Model.Messages)
     {
-        <partial name="_Message" model="@message" />
+        <partial name="_message" model="@message" />
     }
 </div>

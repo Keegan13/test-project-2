@@ -7,12 +7,12 @@ namespace NoSocNet.Infrastructure.Services.Notificator
 {
     public class TypedNotification
     {
-        public TypedNotification(HubNotificationType type, Object notificationBody)
+        public TypedNotification(AppNotificationType type, Object notificationBody)
         {
             this.Type = type;
             this.Notification = notificationBody;
         }
-        public HubNotificationType Type { get; private set; }
+        public AppNotificationType Type { get; private set; }
 
         public object Notification { get; private set; }
     }
