@@ -26,11 +26,6 @@
                             @item.RoomName
                         </a>
                         }
-
-                        <form data-ajax="true" data-ajax-success="onLoadChats" method="post" data-ajax-url="/chat/rooms" id="more-chats-form">
-                            <input type="hidden" name="tailId" value="@(Model.Rooms.LastOrDefault()?.Id)" />
-                            <button type="submit" class="btn" style="margin: auto;font-size: small;width: 100%;">Load More</button>
-                        </form>
                     </div>
                 </div>
             </nav>

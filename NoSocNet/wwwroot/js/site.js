@@ -161,7 +161,6 @@
                 type: "GET",
                 url: "api/search/users?keywords=" + keywords + "&chunk=" + (userChunk + 1),
                 success: function (data) {
-                    debugger;
                     userChunk += 1;
                     prependMoreResults(data, RESULT_TYPE.USER);
                 },
@@ -177,7 +176,6 @@
                 type: "GET",
                 url: "api/search/chat-rooms?keywords=" + keywords + "&chunk=" + (roomChunk + 1),
                 success: function (data) {
-                    debugger;
                     roomChunk += 1;
                     prependMoreResults(data, RESULT_TYPE.CHAT_ROOM);
                 },
@@ -424,10 +422,6 @@
             return inviteForm;
         };
 
-
-        const selectActiveChat = () => {
-        };
-
         let loadMessagesLock = false;
 
         const loadEarlierMessages = () => {
@@ -553,9 +547,13 @@
             });
         });
 
-        const bindScroll = () => {
+        const bindScroll = (element) => {
+            if (!element) {
+                element = $(".chat-messages");
+            }
+
             //ToDo: refactor
-            $(".chat-messages").on('scroll', function (e) {
+            element.on('scroll', function (e) {
                 const scrollHeight = $(this).prop('scrollHeight');
                 const elementHeight = $(this).outerHeight(true);
                 const scrollTop = $(this).scrollTop();
@@ -603,6 +601,7 @@
             if (messages.find(`#chat${chat.id}`).length == 0) {
                 const html = renderChatRoomMessages({ ...chat, currentUserId: USER_ID });
                 $(html).appendTo(messages);
+                bindScroll(messages.find(`#chat${chat.id}`));
             }
 
             if (tabs.find(`#chat${chat.id}-tab`).length == 0) {
@@ -650,9 +649,6 @@
                 container.trigger(EVENTS.TAB_CHANGED, { id: id });
             }
         });
-
-
-
 
         return {
             events: {
