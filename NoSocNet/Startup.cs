@@ -13,7 +13,7 @@ using NoSocNet.AutoMapper;
 using NoSocNet.Infrastructure.AutoMapper;
 using NoSocNet.Infrastructure.Services;
 using NoSocNet.Core.Interfaces;
-using NoSocNet.Infrastructure.Services.Hub;
+using NoSocNet.Infrastructure.Services.Notificator;
 using NoSocNet.Infrastructure.Extensions;
 using NoSocNet.Core.Services;
 using NoSocNet.Domain.Models;
@@ -53,10 +53,10 @@ namespace NoSocNet
             services.AddScoped<IChatRoomRepository, EFCoreChatRoomRepository>();
             services.AddScoped<IUserRepository, EFCoreUserRepository>();
             services.AddScoped<IMessageRepository, EFCoreMessageRepository>();
-            services.AddSingleton<ApplicationNotificator>();
+            services.AddSingleton<NotificationService>();
 
-            services.AddTransient<MessageObserver>();
-            services.AddSingleton(factory => factory.GetRequiredService<ApplicationNotificator>() as INotificator);
+            services.AddTransient<NotificationObserver>();
+            services.AddSingleton(factory => factory.GetRequiredService<NotificationService>() as INotificator);
 
             services.AddHttpContextIdentityService();
 

@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NoSocNet.Infrastructure.Services.Hub
+namespace NoSocNet.Infrastructure.Services.Notificator
 {
-    public class HubNotificationArguments
+    public class NotificationArguments
     {
-        public HubNotificationArguments(HubNotification notification, IEnumerable<Guid> destinations)
+        public NotificationArguments(TypedNotification notification, IEnumerable<Guid> destinations)
         {
             this.Notification = notification;
             this.Connections = destinations.Distinct();
         }
 
-        public HubNotification Notification { get; private set; }
+        public TypedNotification Notification { get; private set; }
 
         public IEnumerable<Guid> Connections { get; private set; }
     }

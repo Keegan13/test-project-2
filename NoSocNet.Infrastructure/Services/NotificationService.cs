@@ -1,5 +1,5 @@
 ﻿using NoSocNet.Core.Interfaces;
-using NoSocNet.Infrastructure.Services.Hub;
+using NoSocNet.Infrastructure.Services.Notificator;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 namespace NoSocNet.Infrastructure.Services
 {
 
-    public class ApplicationNotificator : HubBase, INotificator
+    public class NotificationService : ApplicationNotificator, INotificator
     {
         public Task<bool> Notificate(INotification notification)
         {
             try
             {
-                base.Notify(new HubNotification((HubNotificationType)notification.Type, notification.Body), notification.Receivers.ToArray());
+                base.Notify(new TypedNotification((HubNotificationType)notification.Type, notification.Body), notification.Receivers.ToArray());
                 return Task.FromResult(true);
             }
             catch (Exception ex)

@@ -1,4 +1,4 @@
-﻿namespace NoSocNet.Infrastructure.Services.Hub
+﻿namespace NoSocNet.Infrastructure.Services.Notificator
 {
     public enum HubNotificationType
     {

@@ -6,7 +6,7 @@ using NoSocNet.Core.Interfaces;
 using NoSocNet.Core.Models;
 using NoSocNet.Extensions;
 using NoSocNet.Infrastructure.Services;
-using NoSocNet.Infrastructure.Services.Hub;
+using NoSocNet.Infrastructure.Services.Notificator;
 using NoSocNet.Models;
 using System;
 using System.Collections.Generic;
@@ -21,15 +21,15 @@ namespace NoSocNet.Controllers
     public class HubController : Controller
     {
         public readonly IIdentityService identity;
-        private readonly ApplicationNotificator notificator;
-        private readonly MessageObserver observer;
+        private readonly NotificationService notificator;
+        private readonly NotificationObserver observer;
         private readonly IMapper mapper;
 
         public HubController(
             IMapper mapper,
-            ApplicationNotificator notificator,
+            NotificationService notificator,
             IIdentityService identity,
-            MessageObserver observer
+            NotificationObserver observer
             )
         {
             this.observer = observer;
@@ -75,7 +75,7 @@ namespace NoSocNet.Controllers
         {
             if (!String.IsNullOrEmpty(connectionId))
             {
-                HubNotification notification = this.observer.GetMessageOrDefaultAsync(Guid.Parse(connectionId), 1000 * 60);
+                TypedNotification notification = this.observer.GetMessageOrDefaultAsync(Guid.Parse(connectionId), 1000 * 60);
 
                 if (notification == null)
                 {
@@ -88,12 +88,12 @@ namespace NoSocNet.Controllers
                     ChatJoinViewModel vm = mapper.Map<NewChatUser, ChatJoinViewModel>(dto);
                     vm.ChatName = dto.Room.GetRoomName(identity.CurrentUserId);
 
-                    return Json(new HubNotification(HubNotificationType.ChatJoin, vm));
+                    return Json(new TypedNotification(HubNotificationType.ChatJoin, vm));
                 }
 
                 if (notification.Type == HubNotificationType.Message)
                 {
-                    return Json(new HubNotification(HubNotificationType.Message, mapper.Map<MessageDto, MessageViewModel>(notification.Notification as MessageDto)));
+                    return Json(new TypedNotification(HubNotificationType.Message, mapper.Map<MessageDto, MessageViewModel>(notification.Notification as MessageDto)));
                 }
 
                 if (notification.Type == HubNotificationType.NewChat)
@@ -102,7 +102,7 @@ namespace NoSocNet.Controllers
                     ChatRoomViewModel vm = mapper.Map<ChatRoomDto, ChatRoomViewModel>(dto);
                     vm.RoomName = dto.GetRoomName(identity.CurrentUserId);
 
-                    return Json(new HubNotification(HubNotificationType.NewChat, vm));
+                    return Json(new TypedNotification(HubNotificationType.NewChat, vm));
                 }
 
 

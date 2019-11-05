@@ -5,15 +5,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NoSocNet.Infrastructure.Services.Hub
+namespace NoSocNet.Infrastructure.Services.Notificator
 {
-    public class HubBase
+    public class ApplicationNotificator
     {
         protected static ConcurrentDictionary<string, List<Guid>> Connections = new ConcurrentDictionary<string, List<Guid>>();
-        protected virtual event EventHandler<HubNotificationArguments> _event;
+        protected virtual event EventHandler<NotificationArguments> _event;
         protected static ManualResetEvent _resetEvent = new ManualResetEvent(false);
 
-        public HubBase()
+        public ApplicationNotificator()
         {
 
         }
@@ -40,7 +40,7 @@ namespace NoSocNet.Infrastructure.Services.Hub
             return connectionId;
         }
 
-        public virtual bool Subscribe(Guid connectionId, EventHandler<HubNotificationArguments> handler)
+        public virtual bool Subscribe(Guid connectionId, EventHandler<NotificationArguments> handler)
         {
             if (handler != null && Connections.Any(x => x.Value.Any(c => c == connectionId)))
             {
@@ -50,12 +50,12 @@ namespace NoSocNet.Infrastructure.Services.Hub
             return false;
         }
 
-        public virtual void Unsubscribe(EventHandler<HubNotificationArguments> handler)
+        public virtual void Unsubscribe(EventHandler<NotificationArguments> handler)
         {
             this._event -= handler;
         }
 
-        public void Notify(HubNotification notification, params string[] usersIds)
+        public void Notify(TypedNotification notification, params string[] usersIds)
         {
             List<Guid> destinationsIds = new List<Guid>();
 
@@ -69,7 +69,7 @@ namespace NoSocNet.Infrastructure.Services.Hub
 
             if (destinationsIds.Count() > 0)
             {
-                this._event.Invoke(this, new HubNotificationArguments(notification, destinationsIds));
+                this._event.Invoke(this, new NotificationArguments(notification, destinationsIds));
                 _resetEvent.Set();
             }
         }

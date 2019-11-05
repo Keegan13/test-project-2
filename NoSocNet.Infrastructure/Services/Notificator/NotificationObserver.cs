@@ -6,32 +6,32 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NoSocNet.Infrastructure.Services.Hub
+namespace NoSocNet.Infrastructure.Services.Notificator
 {
-    public class MessageObserver
+    public class NotificationObserver
     {
         public Guid ConnectionId { get; private set; }
 
-        private readonly ApplicationNotificator hub;
+        private readonly NotificationService hub;
         private readonly ManualResetEvent notificator;
-        private HubNotification Notification = null;
+        private TypedNotification Notification = null;
 
         private bool notificationReceived = false;
 
-        public MessageObserver(
-            ApplicationNotificator hub
+        public NotificationObserver(
+            NotificationService hub
             )
         {
             this.hub = hub;
             this.notificator = hub.GetNotificator();
         }
 
-        public virtual HubNotification GetMessageOrDefaultAsync(Guid connectionId, int? timeOut = null)
+        public virtual TypedNotification GetMessageOrDefaultAsync(Guid connectionId, int? timeOut = null)
         {
             this.ConnectionId = connectionId;
 
             DateTime globTimeout = timeOut.HasValue ? DateTime.Now.AddMilliseconds(timeOut.Value) : DateTime.Now.AddDays(1);
-            var handler = new EventHandler<HubNotificationArguments>(onMessageHandler);
+            var handler = new EventHandler<NotificationArguments>(onMessageHandler);
 
             this.hub.Subscribe(this.ConnectionId, handler);
 
@@ -61,7 +61,7 @@ namespace NoSocNet.Infrastructure.Services.Hub
             return this.Notification;
         }
 
-        private void onMessageHandler(object sender, HubNotificationArguments e)
+        private void onMessageHandler(object sender, NotificationArguments e)
         {
             if (e.Connections.Contains(this.ConnectionId))
             {
