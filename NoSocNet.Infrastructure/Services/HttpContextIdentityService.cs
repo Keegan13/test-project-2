@@ -6,7 +6,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System;
 
-namespace NoSocNet.Infrastructure.Services.Core
+namespace NoSocNet.Infrastructure.Services
 {
     public class HttpContextIdentityService : IIdentityService
     {

@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using NoSocNet.Domain.Models;
-using NoSocNet.Infrastructure.Domain;
+using NoSocNet.Infrastructure.Data;
+using NoSocNet.Infrastructure.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NoSocNet.Core.Interfaces;
 using NoSocNet.Core.Models;
-using NoSocNet.Domain.Interfaces;
+using NoSocNet.Core.Interfaces;
 using NoSocNet.Domain.Models;
 using NoSocNet.Extensions;
 using NoSocNet.Models;
@@ -68,13 +68,13 @@ namespace NoSocNet.Controllers
         {
             string userId = this.identity.CurrentUserId;
 
-            var rooms = (await roomRepo.GetRecentChatRoomsAsync(userId, loadedRoomsIds));
+            var rooms = (await roomRepo.GetRecentChatRoomsAsync(userId, loadedRoomsIds.Select(x=>x).ToArray()));
 
             var reads = await roomRepo.GetHasUnreadAsync(rooms.Select(x => x.Id).ToArray(), userId);
 
             if (!String.IsNullOrEmpty(roomId) && rooms.Any(x => x.Id == roomId))
             {
-                ViewBag.SelectedId = roomId;
+                ViewBag.SelectedId = roomId.ToLower();
             }
 
             return View(new IndexViewModel

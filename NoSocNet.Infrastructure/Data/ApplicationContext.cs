@@ -4,10 +4,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using NoSocNet.Domain.Interfaces;
+using NoSocNet.Core.Interfaces;
 using NoSocNet.Domain.Models;
 
-namespace NoSocNet.Infrastructure.Domain
+namespace NoSocNet.Infrastructure.Data
 {
     public class ApplicationDbContext : IdentityDbContext<UserEntity>, IUnitOfWork
     {

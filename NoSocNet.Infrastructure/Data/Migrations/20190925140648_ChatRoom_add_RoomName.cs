@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace NoSocNet.DAL.Migrations
+namespace NoSocNet.Infrastructure.Data.Migrations
 {
     public partial class ChatRoom_add_RoomName : Migration
     {

@@ -1,13 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using NoSocNet.Domain.Interfaces;
+using NoSocNet.Core.Interfaces;
 using NoSocNet.Domain.Models;
+using NoSocNet.Infrastructure.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NoSocNet.Infrastructure.Domain
+namespace NoSocNet.Infrastructure.Services
 {
     public class EFCoreMessageRepository : EFCoreRepositoryBase<MessageEntity, int>, IMessageRepository
     {

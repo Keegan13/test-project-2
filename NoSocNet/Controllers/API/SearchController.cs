@@ -5,7 +5,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NoSocNet.Core.Interfaces;
-using NoSocNet.Domain.Interfaces;
+using NoSocNet.Core.Interfaces;
 using NoSocNet.Domain.Models;
 using NoSocNet.Extensions;
 using NoSocNet.Models;

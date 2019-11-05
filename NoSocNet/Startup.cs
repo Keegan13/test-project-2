@@ -1,31 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using AutoMapper;
-using NoSocNet.Models;
 using Microsoft.Extensions.Hosting;
 using NoSocNet.AutoMapper;
 using NoSocNet.Infrastructure.AutoMapper;
-using NoSocNet.Infrastructure.Domain;
-using NoSocNet.Domain.Interfaces;
 using NoSocNet.Infrastructure.Services;
-using NoSocNet.Infrastructure.Services.Hub;
 using NoSocNet.Core.Interfaces;
-using NoSocNet.Infrastructure.Services.Core;
+using NoSocNet.Infrastructure.Services.Hub;
 using NoSocNet.Infrastructure.Extensions;
 using NoSocNet.Core.Services;
 using NoSocNet.Domain.Models;
+using NoSocNet.Infrastructure.Data;
 
 namespace NoSocNet
 {
@@ -52,7 +44,7 @@ namespace NoSocNet
 
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
-                    Configuration.GetConnectionString("DefaultConnection")));
+                    Configuration.GetConnectionString("LocalConnection")));
 
             services.AddHttpContextAccessor();
 

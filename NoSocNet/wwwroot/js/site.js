@@ -495,7 +495,6 @@
 
         $(document).on(EVENTS.NEW_MESSAGE, function ($event, { payload }) {
             const message = payload;
-            message.chatRoomId = message.chatRoomId.toUpperCase();
             const messages = selectMessages();
             const chatMessages = messages.find(`#chat${message.chatRoomId}`);
 
@@ -505,7 +504,6 @@
                 $(html).appendTo(chatMessages);
                 $(chatMessages).trigger(EVENTS.ON_MESSAGE, { payload: message });
             }
-
             if (chatMessages.length === 0) {
                 _config.loadChat(message.chatRoomId).then((data) => {
                     newChatEmmiter(data);
@@ -546,6 +544,8 @@
                 $("#shared-modal").html(data).modal("show");
             });
         });
+
+       
 
         const bindScroll = (element) => {
             if (!element) {
@@ -594,7 +594,6 @@
 
         $(document).on(EVENTS.NEW_CHAT, function ($event, { payload }) {
             const chat = payload;
-            chat.id = chat.id.toUpperCase();
             const tabs = selectTabs();
             const messages = selectMessages();
 

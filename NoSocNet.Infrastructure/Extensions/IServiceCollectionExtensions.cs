@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using NoSocNet.Core.Interfaces;
-using NoSocNet.Infrastructure.Services.Core;
+using NoSocNet.Infrastructure.Services;
 using System;
 using System.Collections.Generic;
 using System.Text;

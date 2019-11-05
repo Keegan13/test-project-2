@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using NoSocNet.Domain.Interfaces;
+using NoSocNet.Core.Interfaces;
 using NoSocNet.Domain.Models;
+using NoSocNet.Infrastructure.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace NoSocNet.Infrastructure.Domain
+namespace NoSocNet.Infrastructure.Services
 {
     public class EFCoreChatRoomRepository : EFCoreRepositoryBase<ChatRoomEntity, string>, IChatRoomRepository
     {
@@ -138,7 +139,7 @@ namespace NoSocNet.Infrastructure.Domain
                 .Select(x => new
                 {
                     x.Id,
-                    HasUnread = x.Messages.Any(m => m.ReadByUsers.All(r => r.UserId != userId))
+                    HasUnread = x.Messages.Any(m => m.SenderUserId != userId && m.ReadByUsers.All(r => r.UserId != userId))
                 })
                 .ToArrayAsync())
                 .ToDictionary(x => x.Id, x => x.HasUnread);

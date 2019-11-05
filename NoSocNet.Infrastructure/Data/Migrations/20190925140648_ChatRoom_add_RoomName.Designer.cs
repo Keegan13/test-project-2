@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NoSocNet.Infrastructure.Domain;
+using NoSocNet.Infrastructure.Services;
 
-namespace NoSocNet.Infrastructure.Migrations
+namespace NoSocNet.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190925140648_ChatRoom_add_RoomName")]
+    partial class ChatRoom_add_RoomName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -133,25 +135,25 @@ namespace NoSocNet.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
-            modelBuilder.Entity("NoSocNet.DAL.Models.ChatRoomDto", b =>
+            modelBuilder.Entity("NoSocNet.Domain.Models.ChatRoomDto", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd();
 
                     b.Property<bool>("IsPrivate");
 
-                    b.Property<string>("OwnerUserId");
+                    b.Property<string>("OwnerId");
 
                     b.Property<string>("RoomName");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OwnerUserId");
+                    b.HasIndex("OwnerId");
 
                     b.ToTable("ChatRooms");
                 });
 
-            modelBuilder.Entity("NoSocNet.DAL.Models.MessageDto", b =>
+            modelBuilder.Entity("NoSocNet.Domain.Models.MessageDto", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -161,7 +163,7 @@ namespace NoSocNet.Infrastructure.Migrations
 
                     b.Property<DateTime>("SendDate");
 
-                    b.Property<string>("SenderUserId");
+                    b.Property<string>("SenderId");
 
                     b.Property<string>("Text");
 
@@ -169,29 +171,12 @@ namespace NoSocNet.Infrastructure.Migrations
 
                     b.HasIndex("ChatRoomId");
 
-                    b.HasIndex("SenderUserId");
+                    b.HasIndex("SenderId");
 
                     b.ToTable("Messages");
                 });
 
-            modelBuilder.Entity("NoSocNet.DAL.Models.MessageReadByUserDto", b =>
-                {
-                    b.Property<string>("UserId");
-
-                    b.Property<int>("MessageId");
-
-                    b.Property<DateTime?>("DateRead")
-                        .ValueGeneratedOnAdd()
-                        .HasDefaultValueSql("getdate()");
-
-                    b.HasKey("UserId", "MessageId");
-
-                    b.HasIndex("MessageId");
-
-                    b.ToTable("MessagesReadBy");
-                });
-
-            modelBuilder.Entity("NoSocNet.DAL.Models.User", b =>
+            modelBuilder.Entity("NoSocNet.Domain.Models.User", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd();
@@ -242,7 +227,7 @@ namespace NoSocNet.Infrastructure.Migrations
                     b.ToTable("AspNetUsers");
                 });
 
-            modelBuilder.Entity("NoSocNet.DAL.Models.UsersChatRoomsDto", b =>
+            modelBuilder.Entity("NoSocNet.Domain.Models.UsersChatRoomsDto", b =>
                 {
                     b.Property<string>("UserId");
 
@@ -265,7 +250,7 @@ namespace NoSocNet.Infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("NoSocNet.DAL.Models.User")
+                    b.HasOne("NoSocNet.Domain.Models.User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
@@ -273,7 +258,7 @@ namespace NoSocNet.Infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("NoSocNet.DAL.Models.User")
+                    b.HasOne("NoSocNet.Domain.Models.User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
@@ -286,7 +271,7 @@ namespace NoSocNet.Infrastructure.Migrations
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("NoSocNet.DAL.Models.User")
+                    b.HasOne("NoSocNet.Domain.Models.User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
@@ -294,51 +279,38 @@ namespace NoSocNet.Infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("NoSocNet.DAL.Models.User")
+                    b.HasOne("NoSocNet.Domain.Models.User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("NoSocNet.DAL.Models.ChatRoomDto", b =>
+            modelBuilder.Entity("NoSocNet.Domain.Models.ChatRoomDto", b =>
                 {
-                    b.HasOne("NoSocNet.DAL.Models.User", "OwnerUser")
+                    b.HasOne("NoSocNet.Domain.Models.User", "Owner")
                         .WithMany()
-                        .HasForeignKey("OwnerUserId");
+                        .HasForeignKey("OwnerId");
                 });
 
-            modelBuilder.Entity("NoSocNet.DAL.Models.MessageDto", b =>
+            modelBuilder.Entity("NoSocNet.Domain.Models.MessageDto", b =>
                 {
-                    b.HasOne("NoSocNet.DAL.Models.ChatRoomDto", "ChatRoom")
+                    b.HasOne("NoSocNet.Domain.Models.ChatRoomDto", "ChatRoom")
                         .WithMany("Messages")
                         .HasForeignKey("ChatRoomId");
 
-                    b.HasOne("NoSocNet.DAL.Models.User", "SenderUser")
+                    b.HasOne("NoSocNet.Domain.Models.User", "Sender")
                         .WithMany("Messages")
-                        .HasForeignKey("SenderUserId");
+                        .HasForeignKey("SenderId");
                 });
 
-            modelBuilder.Entity("NoSocNet.DAL.Models.MessageReadByUserDto", b =>
+            modelBuilder.Entity("NoSocNet.Domain.Models.UsersChatRoomsDto", b =>
                 {
-                    b.HasOne("NoSocNet.DAL.Models.MessageDto", "Message")
-                        .WithMany("ReadByUsers")
-                        .HasForeignKey("MessageId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("NoSocNet.DAL.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("NoSocNet.DAL.Models.UsersChatRoomsDto", b =>
-                {
-                    b.HasOne("NoSocNet.DAL.Models.ChatRoomDto", "ChatRoom")
+                    b.HasOne("NoSocNet.Domain.Models.ChatRoomDto", "ChatRoom")
                         .WithMany("UserRooms")
                         .HasForeignKey("ChatRoomId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("NoSocNet.DAL.Models.User", "User")
+                    b.HasOne("NoSocNet.Domain.Models.User", "User")
                         .WithMany("UserRooms")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);

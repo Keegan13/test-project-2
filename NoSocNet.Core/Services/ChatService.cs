@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NoSocNet.Domain.Models;
-using NoSocNet.Domain.Interfaces;
+using NoSocNet.Core.Interfaces;
 using System.Threading.Tasks;
 using NoSocNet.Core.Models;
 using AutoMapper;

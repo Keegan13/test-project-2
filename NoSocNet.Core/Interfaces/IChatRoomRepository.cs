@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NoSocNet.Domain.Interfaces
+namespace NoSocNet.Core.Interfaces
 {
     public interface IChatRoomRepository : IRepository<ChatRoomEntity, string>
     {

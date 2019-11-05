@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NoSocNet.Domain.Interfaces
+namespace NoSocNet.Core.Interfaces
 {
     public interface IUnitOfWork
     {

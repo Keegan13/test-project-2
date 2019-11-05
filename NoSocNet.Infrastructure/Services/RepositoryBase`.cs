@@ -1,11 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using NoSocNet.Core.Interfaces;
 using NoSocNet.Domain.Interfaces;
+using NoSocNet.Infrastructure.Data;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NoSocNet.Infrastructure.Domain
+namespace NoSocNet.Infrastructure.Services
 {
     public abstract class EFCoreRepositoryBase<TEntity, TKey> : IRepository<TEntity, TKey> where TEntity : class, IIdentifiable<TKey>
     {

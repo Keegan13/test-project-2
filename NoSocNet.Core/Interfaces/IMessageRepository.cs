@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using NoSocNet.Domain.Models;
 
-namespace NoSocNet.Domain.Interfaces
+namespace NoSocNet.Core.Interfaces
 {
     public interface IMessageRepository : IRepository<MessageEntity, int>
     {

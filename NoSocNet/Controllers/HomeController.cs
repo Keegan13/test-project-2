@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using NoSocNet.Infrastructure.Domain;
+using NoSocNet.Infrastructure.Services;
 using NoSocNet.Domain.Models;
 using NoSocNet.Infrastructure.Seeding;
 using NoSocNet.Models;
+using NoSocNet.Infrastructure.Data;
 
 namespace NoSocNet.Controllers
 {
