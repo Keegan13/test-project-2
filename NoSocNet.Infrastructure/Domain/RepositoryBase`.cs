@@ -22,6 +22,7 @@ namespace NoSocNet.Infrastructure.Domain
         {
             var result = this.context.Add(entity);
             await this.context.SaveChangesAsync();
+            this.context.Entry(entity).State = EntityState.Detached;
             return result.Entity.Id;
         }
 

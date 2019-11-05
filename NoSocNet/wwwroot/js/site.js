@@ -278,22 +278,51 @@
 
     };
 
+    const getRoomName = ({ id, roomName, currentUserId, participants, isPrivate }) => {
+        if (roomName && roomName !== "") {
+            return roomName;
+        }
 
-    const renderChatRoomTab = ({ id, roomName, icon = "fa-user", active = false, updated = false }) => {
+        const unknownChat = `Unknown chat ${id}`;
 
-        return `<a class="nav-item nav-link d-block w-100 chat-tab-link" id="chat${id}-tab" data-toggle="tab" href="#chat${id}" role="tab" aria-controls="chat${id}" aria-selected="false"> <i class="fa fa-user"></i> ${roomName}</a> `;
+        if (participants && participants.length > 0) {
 
+            const others = participants.filter((x) => x.id !== currentUserId);
+
+            if (isPrivate) {
+                return others.length > 0 ? others[0].userName : unknownChat;
+            }
+            else {
+                return others.length > 0 ? others.reduce((name, user) => {
+                    name += `${user.userName},`;
+                    return name;
+                }, `# (${participants.length}) `) : unknownChat;
+            }
+        }
+
+        return unknownChat;
+    };
+
+    const renderChatRoomTab = ({ id, roomName, participants, isPrivate, icon = "fa-user", active = false, updated = false, currentUserId }) => {
+        const _roomName = getRoomName({ id, roomName, participants, isPrivate, currentUserId })
+
+        return `<a class="nav-item nav-link d-block w-100 chat-tab-link" id="chat${id}-tab" data-toggle="tab" href="#chat${id}" role="tab" aria-controls="chat${id}" data-id="${id}" aria-selected="false"> <i class="fa fa-user"></i> ${_roomName}</a> `;
 
         //return `<div class="nav-item nav-link w-100 chat-tab-link ${(active ? "active" : "")} ${(updated ? "updated" : "")}"><i class="fa ${icon}"></i> ${roomName}</a > `;
     };
 
-    const renderChatRoomMessages = ({ id, roomName }) => {
-        return `<div class="tab-pane fade" id = "chat${id}" role = "tabpanel" aria-labelledby="chat${id}-tab" > <div class="mb-3 mt-2"><h4 class="chat-heading d-inline-block align-middle">${roomName}</h4><a data-ajax="true" class="btn btn-primary btn-invite d-inline-block align-middle float-right" data-ajax-success="partialModal" data-ajax-method="GET" data-ajax-url="/Chat/Invite/${id}"><i class="fa fa-plus-circle"></i></a></div> <div class="chat-messages"></div> <form method="post" data-ajax="true" data-ajax-method="post" data-ajax-url="/Chat/Sent" data-ajax-success="onMessageSent" class="mt-2"><div class="input-group"><input type="hidden" name="roomid" value="${id}" /><textarea class="form-control" name="text" value="" placeholder="Type a message" required></textarea><button type="submit" class="btn"><i class="fa fa-telegram" style="font-size:36px;color:cornflowerblue"></i></button></div></form></div> `
+    const renderChatRoomMessages = ({ id, roomName, messages, currentUserId }) => {
+        const messagesHtml = messages.reduce((html, message) => {
+            html += renderMessage({ ...message, currentUserId });
+            return html;
+        }, "");
+        return `<div class="tab-pane chat-messages scrollable fade" id="chat${id}" role="tabpanel" aria-labelledby="chat${id}-tab" data-id="${id}" >${messagesHtml}</div >`;
     };
 
     const renderMessage = ({ id, text, sendDate, senderId, senderUserName, currentUserId }) => {
         const _sendDate = moment(new Date(sendDate)).format("YYYY-MM-DD hh:mm");
         const senderCls = currentUserId === senderId ? 'outcomming' : 'incomming';
+
         return `<div class="alert alert-primary ${senderCls} chat-message" role="alert" data-id="${id}"> <p>${text}</p> <hr><p class="message-info"><span class="message-date">${_sendDate}</span> ${senderUserName}</p></div>`;
     };
 
@@ -332,7 +361,7 @@
             loadUser: function (id) {
 
             },
-            messagesSeen: function (data) { console.log("mesages seen"); },
+            messagesSeen: function ({ chatRoomId }) { console.log("mesages seen"); },
             loadMessages: function ({ chatRoomId, tailMessageId }) {
             },
             sendMessage: function (data) {
@@ -392,8 +421,6 @@
         };
 
 
-
-
         const selectActiveChat = () => {
         };
 
@@ -417,8 +444,6 @@
             }
         };
 
-
-
         const messageEmmiter = (message) => {
             container.trigger(EVENTS.NEW_MESSAGE, { payload: message });
         };
@@ -436,10 +461,11 @@
         };
 
 
-        $(document).on(EVENTS.NEW_MESSAGE, function ({ payload }) {
+        $(document).on(EVENTS.NEW_MESSAGE, function ($event, { payload }) {
             const message = payload;
+            message.chatRoomId = message.chatRoomId.toUpperCase();
             const messages = selectMessages();
-            const chatMessages = messages.find(`#chat${message.chatRoomId}-tab`);
+            const chatMessages = messages.find(`#chat${message.chatRoomId}`);
 
             if (chatMessages.length === 1) {
                 const html = renderMessage({ ...message, currentUserId: _config.userId })
@@ -455,12 +481,19 @@
             }
         });
 
-        $(document).on(EVENTS.ON_MESSAGE, _config.messageContainerSelector, function ({ payload }) {
+        $(document).on(EVENTS.ON_MESSAGE, _config.messageContainerSelector, function ($event, { payload }) {
             const message = payload;
             if (activeRoomId !== message.chatRoomId) {
-                const chatTab = selectTabs().find(`chat${message.chatRoomId}-tab`);
+                const chatTab = selectTabs().find(`#chat${message.chatRoomId}-tab`);
                 if (chatTab) {
                     chatTab.addClass("updated");
+                }
+            }
+            else {
+                const messageTab = selectMessages().find(`#chat${message.chatRoomId}`);
+                if (messageTab) {
+                    let h = getFullHeight(messageTab);
+                    messageTab.scrollTop(h);
                 }
             }
         });
@@ -468,7 +501,10 @@
         selectSendForm().on('submit', ($event) => {
             $event.preventDefault();
             $event.stopPropagation();
-            _config.sendMessage({ text: $(this).find("[name=text]").val(), chatRoomId: activeRoomId });
+            _config.sendMessage({ text: $(this).find("[name=text]").val(), chatRoomId: activeRoomId })
+                .then(data => {
+                    $(this).find("[name=text]").val("");
+                });
         });
 
         selectInviteForm().on('submit', ($event) => {
@@ -478,7 +514,7 @@
         });
 
         const bindScroll = () => {
-            $(document).on('scroll', _config.messageContainerSelector, function (e) {
+            $(_config.messageContainerSelector).on('scroll', ".chat-messages", function (e) {
                 console.log('catching scroll event');
 
                 const fullHeight = getFullHeight(this);
@@ -495,7 +531,7 @@
                     loadEarlierMessages();
                 }
                 if (almostBottom()) {
-                    messagesSeen(activeRoomId);
+                    messagesSeen({ chatRoomId: activeRoomId });
                 }
                 ///load messages here
                 //let position = $(e.target).scrollTop();
@@ -508,31 +544,40 @@
 
         bindScroll();
 
-        $(document).on(EVENTS.NEW_CHAT, function ({ payload }) {
+        $(document).on(EVENTS.NEW_CHAT, function ($event, { payload }) {
             const chat = payload;
+            chat.id = chat.id.toUpperCase();
             const tabs = selectTabs();
             const messages = selectMessages();
 
             if (messages.find(`#chat${chat.id}`).length == 0) {
-                const html = renderChatRoomMessages(chat);
+                const html = renderChatRoomMessages({ ...chat, currentUserId: USER_ID });
                 $(html).appendTo(messages);
             }
 
             if (tabs.find(`#chat${chat.id}-tab`).length == 0) {
-                const html = renderChatRoomTab(chat);
-                $(html).appendTo(tabs);
+                const html = renderChatRoomTab({ ...chat, currentUserId: USER_ID });
+
+                const last = tabs.find(".chat-tab-link").last();
+                if (last.length > 0) {
+                    $(html).insertAfter(last);
+                }
+                else {
+                    $(html).prependTo(tabs);
+                }
             };
 
             if (chat.isFocus) {
                 tabs.find(`#chat${chat.id}-tab`).tab('show');
+                activeRoomId = chat.id;
             }
 
         });
-        $(document).on(EVENTS.NEW_USER, function ({ payload }) { });
+        $(document).on(EVENTS.NEW_USER, function ($event, { payload }) { });
 
-        $(document).on(EVENTS.TYPING, function ({ payload }) { });
+        $(document).on(EVENTS.TYPING, function ($event, { payload }) { });
 
-        $(document).on(EVENTS.ON_MESSAGE_SENT, function () {
+        $(document).on(EVENTS.ON_MESSAGE_SENT, function ($event, { payload }) {
             const sentForm = selectSendForm();
             sentForm.find("textarea").val("");
         });
@@ -540,7 +585,8 @@
         $(document).on('click', 'a[data-toggle="tab"]', function (e) {
             $(e.target).removeClass("updated");
             const id = $(this).data('id');
-            messagesSeen(id);
+            activeRoomId = id;
+            _config.messagesSeen({ chatRoomId: id });
         });
 
 

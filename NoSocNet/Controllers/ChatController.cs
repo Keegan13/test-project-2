@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NoSocNet.Core.Interfaces;
+using NoSocNet.Core.Models;
 using NoSocNet.Domain.Interfaces;
 using NoSocNet.Domain.Models;
 using NoSocNet.Extensions;
@@ -48,12 +49,17 @@ namespace NoSocNet.Controllers
 
         }
 
-        [HttpPut]
-        public async Task<IActionResult> Seen(string roomId, int? id = null)
+        public class SeenInput
         {
-            string currUserId = identity.CurrentUserId;
-            await chatService.SetReadByUserAsync(currUserId, roomId, id);
+            public string ChatRoomId { get; set; }
+            public int? HeadMessageId { get; set; }
+        }
 
+        [HttpPut]
+        public async Task<IActionResult> Seen([FromBody] SeenInput input)
+        {
+            string currentUserId = identity.CurrentUserId;
+            await chatService.SetReadByUserAsync(currentUserId, input.ChatRoomId, input.HeadMessageId);
             return Ok();
         }
 
@@ -143,17 +149,7 @@ namespace NoSocNet.Controllers
                 var chatRoom = await this.chatService.GetOrCreatePrivateRoomWith(id);
                 var currUserId = identity.CurrentUserId;
 
-                var model = new ChatRoomViewModel
-                {
-                    //ToDo: move to AutoMapper
-                    Id = chatRoom.Id,
-                    Messages = chatRoom.Messages.Select(x => mapper.Map<MessageViewModel>(x)).ToList(),
-                    Participants = chatRoom.Participants.Select(x => mapper.Map<UserViewModel>(x)).ToList(),
-                    IsPrivate = chatRoom.IsPrivate,
-                    OwnerId = identity.CurrentUserId,
-                    RoomName = chatRoom.GetRoomName(currUserId),
-                    Owner = mapper.Map<UserViewModel>(chatRoom.Owner)
-                };
+                var model = mapper.Map<ChatRoomDto, ChatRoomViewModel>(chatRoom);
 
                 return Json(model);
                 //return RedirectToAction("Index", new { roomId = chatRoom.Id });
@@ -187,7 +183,7 @@ namespace NoSocNet.Controllers
         {
             return Json(new[] { "1", "123" });
         }
-       
+
         [HttpPost]
         public async Task<IActionResult> Rooms([FromForm] string keywords = null)
         {

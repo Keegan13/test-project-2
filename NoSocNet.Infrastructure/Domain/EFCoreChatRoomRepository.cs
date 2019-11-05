@@ -29,6 +29,19 @@ namespace NoSocNet.Infrastructure.Domain
             return query.FirstOrDefaultAsync();
         }
 
+        public async override Task<ChatRoomEntity> FindByIdAsync(string keys)
+        {
+            var room = await this.context.Set<ChatRoomEntity>().Include(x => x.UserRooms).ThenInclude(x => x.User).FirstOrDefaultAsync(x => x.Id == keys);
+
+            if (room != null)
+            {
+                await this.context.Entry(room).Collection(x => x.Messages).Query().OrderByDescending(x => x.SendDate).Take(10).LoadAsync();
+
+            }
+
+            return room;
+        }
+
         public Task CreatePrivateRoomAsync(string firstUserId, string secondUserId)
         {
             ChatRoomEntity newRoom = new ChatRoomEntity { IsPrivate = true, OwnerUserId = firstUserId };
@@ -69,8 +82,8 @@ namespace NoSocNet.Infrastructure.Domain
 
             query = query
                 .Include(x => x.OwnerUser)
-                .Include(x => x.UserRooms).ThenInclude(x => x.User)
-                .Include(x => x.Messages).ThenInclude(x => x.SenderUser);
+                .Include(x => x.UserRooms).ThenInclude(x => x.User);
+            //.Include(x => x.Messages).ThenInclude(x => x.SenderUser);
 
 
             if (skipIds != null && skipIds.Length > 0)
@@ -86,18 +99,19 @@ namespace NoSocNet.Infrastructure.Domain
 
             var selectedChatRoomIds = data.Select(x => x.Id).ToArray();
 
-            //var messageLookup = this.context.Set<MessageEntity>()
-            //    .Include(x => x.SenderUser)
-            //    .Include(x => x.ReadByUsers).ThenInclude(x => x.User)
-            //    .Where(x => selectedChatRoomIds.Contains(x.ChatRoomId))
-            //    .GroupBy(x => x.ChatRoomId)
-            //    .SelectMany(x => x.OrderByDescending(m => m.SendDate).Take(10))
-            //    .ToLookup(x => x.ChatRoomId);
 
-            //foreach (var item in data)
-            //{
-            //    item.Messages = messageLookup[item.Id].Reverse().ToList();
-            //}
+
+
+            var messageLookup = (from message in this.context.Set<MessageEntity>()
+                                 where selectedChatRoomIds.Contains(message.ChatRoomId)
+                                 group message by message.ChatRoomId into messageGroup
+                                 select messageGroup)
+                            .SelectMany(x => x.OrderByDescending(m => m.SendDate).Take(10)).ToLookup((x) => x.ChatRoomId);
+
+            foreach (var item in data)
+            {
+                item.Messages = messageLookup[item.Id].Reverse().ToList();
+            }
 
             return data;
         }

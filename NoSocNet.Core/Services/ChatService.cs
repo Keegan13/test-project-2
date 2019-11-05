@@ -60,7 +60,7 @@ namespace NoSocNet.Core.Services
                 ChatRoomEntity newChatRoom = new ChatRoomEntity
                 {
                     IsPrivate = true,
-                    OwnerUserId = currentUserId,
+                    OwnerUserId = currentUserId.ToLower(),
                     UserRooms = new List<UsersChatRoomsEntity> { new UsersChatRoomsEntity { UserId = currentUserId }, new UsersChatRoomsEntity { UserId = userId } }
                 };
                 string id = await roomRepo.CreateAsync(newChatRoom);
@@ -76,10 +76,20 @@ namespace NoSocNet.Core.Services
 
         public async Task<MessageDto> AddMessage(string userId, string roomId, string text)
         {
+            if (!(await roomRepo.FindByIdAsync(roomId) is ChatRoomEntity chatRoom))
+            {
+                return null;
+            }
+
+            if (!(await userRepo.FindByIdAsync(userId) is UserEntity user))
+            {
+                return null;
+            }
+
             var newMessage = new MessageEntity
             {
-                ChatRoomId = roomId,
-                SenderUserId = userId,
+                ChatRoomId = chatRoom.Id,
+                SenderUserId = user.Id,
                 SendDate = DateTime.Now,
                 Text = text
             };

@@ -31,20 +31,26 @@ namespace NoSocNet.Controllers.API
             this.chatService = chatService;
             this.mapper = mapper;
             this.messsages = repo;
-            
+
             this.identity = identity;
+        }
+
+        public class InputModel
+        {
+            public string Text { get; set; }
+            public string ChatRoomId { get; set; }
         }
 
         [HttpPost]
         //[ValidateAntiForgeryToken]
-        public async Task<IActionResult> Sent(string text, string roomId)
+        public async Task<IActionResult> Sent([FromBody] InputModel input)
         {
-            if (string.IsNullOrWhiteSpace(text))
+            if (string.IsNullOrWhiteSpace(input.Text))
             {
                 return Ok();
             }
 
-            if (await this.chatService.AddMessage(this.identity.CurrentUserId, roomId, text) is MessageDto message)
+            if (await this.chatService.AddMessage(this.identity.CurrentUserId, input.ChatRoomId, input.Text) is MessageDto message)
             {
                 return new JsonResult(new MessageViewModel
                 {
@@ -57,14 +63,14 @@ namespace NoSocNet.Controllers.API
                 });
             }
 
-            return NotFound(new { roomId });
+            return NotFound(new { input.ChatRoomId });
         }
 
 
         [HttpGet]
-        public async Task<MessageViewModel[]> Get(string roomId, int? tail)
+        public async Task<MessageViewModel[]> Get(string chatRoomid, int? tailMessageId)
         {
-            var messages = await messsages.GetMessagesAsync(roomId, 10, tail);
+            var messages = await messsages.GetMessagesAsync(chatRoomid, 10, tailMessageId);
 
             return messages.Select(x => mapper.Map<MessageEntity, MessageViewModel>(x)).ToArray();
         }

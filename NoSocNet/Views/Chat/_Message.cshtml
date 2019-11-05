@@ -4,7 +4,7 @@
 }
 @inject IIdentityService identity
 
-<div class="alert alert-primary @(Model.SenderId==identity.CurrentUserId?"outcomming":"incomming")" role="alert">
+<div class="alert alert-primary @(Model.SenderId==identity.CurrentUserId?"outcomming":"incomming") chat-message" role="alert" data-id="@Model.Id">
     <p>@Model.Text</p>
     <hr>
     <p class="message-info">

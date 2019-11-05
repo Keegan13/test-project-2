@@ -16,13 +16,12 @@
     <div class="col-md-4">
         <div>
             <nav class="chats-tabs">
-
                 <input class="form-control" type="search" id="search-input" autocomplete="off" />
                 <div class="chat-tab-links scrollable">
                     <div class="nav nav-tabs nav-fill" id="nav-tab" role="tablist">
                         @foreach (var item in Model.Rooms)
                         {
-                            <a class="nav-item nav-link w-100 chat-tab-link @(item.Id==selectedId?"active":"") @(item.HasUnread?"updated":"")" id="chat@(item.Id)-tab" data-toggle="tab" href="#chat@(item.Id)" role="tab" aria-controls="chat@(item.Id)" aria-selected="@(item.Id==selectedId?"true":"false")">
+                            <a class="nav-item nav-link w-100 chat-tab-link @(item.Id==selectedId?"active":"") @(item.HasUnread?"updated":"")" id="chat@(item.Id)-tab" data-toggle="tab" data-id="@item.Id" href="#chat@(item.Id)" role="tab" aria-controls="chat@(item.Id)" aria-selected="@(item.Id==selectedId?"true":"false")">
                                 <i class="fa @(item.IsPrivate?"fa fa-user":"fa fa-users")"></i>
                                 @item.RoomName
                             </a>
@@ -72,46 +71,92 @@
 @section Scripts{
     <script>
         (function ($) {
-            $('#search-input').appSearch({
-                onUser: function (id) { alert("Starting chat with user " + id) },
-                onChat: function (id) { alert("Starting chat with id" + id) }
-            });
-            const config = $('#chat-container').chat({
-                tabSelector: "#nav-tab",
-                currentUserId: "@identity.CurrentUserId",
-                messageContainerSelector:"#nav-tabContent"
-            });
 
-            window.config = config;
         })(jQuery)
 
     </script>
     <script>
         (function ($) {
 
-            let _userJoinAlert = function (userJoin) {
-                alert(`User ${userJoin.user.userName} has joined to chat room ${userJoin.chatName}`);
-            };
+            const chatConfig = $('#chat-container').chat({
+                tabSelector: "#nav-tab",
+                currentUserId: "@identity.CurrentUserId",
+                messageContainerSelector: "#nav-tabContent",
+                            activeChatRoomId: "@selectedId",
+            userId: "@identity.CurrentUserId",
+                loadMessage: function (id) {
+                    console.log("no load message endpoint");
+                    return new Promise((resolve, reject) => {
+                        reject("no load mesasge endpoint");
+                    });
+            },
+            loadChat: function (id) {
+                return $.ajax({
+                    method: 'POST',
+                    url: "@Url.Action("Room","Chat")",
+                    dataType: "json",
+                    contentType:'application/json',
+                    data: JSON.stringify({ chatRoomId: id })
+                });
+            },
+            loadUser: function (id) {
+
+            },
+                messagesSeen: function ({ chatRoomId,tailMessageId }) {
+                    return $.ajax({
+                        method: 'PUT',
+                        url: "@Url.Action("Seen","Chat")",
+                        dataType: 'json',
+                        contentType:"application/json",
+                        data: JSON.stringify({chatRoomId,headMessageId:tailMessageId })
+                    });
+                },
+                loadMessages: function ({ chatRoomId, tailMessageId }) {
+                    return $.ajax({
+                        method: "GET",
+                        url: `@Url.Action("Get","Messages")?chatRoomId=${chatRoomId}&tailMessageId=${tailMessageId}`,
+                    });
+
+            },
+                sendMessage: function ({ chatRoomId,text}) {
+                    return $.ajax({
+                        method: 'POST',
+                        url: "@Url.Action("Sent","Messages")",
+                        dataType: "json",
+                        contentType: "application/json",
+                        data: JSON.stringify({ chatRoomId,text })
+                    });
+            },
+                inviteUsers: function ({chatRoomId}) {
+                    return $.ajax({
+                        method: 'POST',
+                        url: "@Url.Action("Invite","Chat")",
+                        dataType: 'json',
+                        contentType: "application/json",
+                        data: JSON.stringify({ chatRoomId })
+                    });
+            },
+            });
 
             let _onMessageHandler = function (msg) {
                 if (msg == null || msg == "" || msg == undefined) {
                     return;
                 }
-                appenMessage(msg);
+                chatConfig.events.triggerNewMessage(msg);
             };
 
             let _onNewChatHandler = function (chat) {
                 if (chat == null || chat == "" || chat == undefined) {
                     return;
                 }
-                appendChat(chat);
+                chatConfig.events.triggerNewChat(chat);
             };
 
             let _onChatJoinHandler = function (user) {
                 if (user == null || user == "" || user == undefined) {
                     return;
                 }
-                _userJoinAlert(user);
+                chatConfig.events.triggerNewUser(user)
             };
 
             const config = {
@@ -124,7 +169,6 @@
             $("#hidden").hub(config);
             $.currentUserId = "@identity.CurrentUserId";
 
-
             $(document).on('keypress', 'form textarea', function (e) {
                 if (e.which == 13 && !e.shiftKey && this.value && this.value.trim().length>0) {
                     e.preventDefault();
@@ -134,6 +178,30 @@
                 else {
                     e.shiftKey = false;
                 }
+            });
+
+
+
+                $('#search-input').appSearch({
+                    onUser: function (id) {
+                        $.ajax({
+                            method: 'GET',
+                            url: `@Url.Action("Private","Chat")/${id}`,
+                        }).then((data) => {
+                            data.isFocus = true;
+                            chatConfig.events.triggerNewChat(data);
+                        });
+                    },
+                    onChat: function (id) {
+                        $.ajax({
+                            method: 'POST',
+                            url: `@Url.Action("Room","Chat")`,
+                            data: { roomId: id }
+                        }).then((data) => {
+                            data.isFocus = true;
+                            chatConfig.events.triggerNewChat(data);
+                        });
+                    }
             });
 
         })(jQuery)
