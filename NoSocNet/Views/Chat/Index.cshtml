@@ -129,11 +129,8 @@
             },
                 inviteUsers: function ({chatRoomId}) {
                     return $.ajax({
-                        method: 'POST',
-                        url: "@Url.Action("Invite","Chat")",
-                        dataType: 'json',
-                        contentType: "application/json",
-                        data: JSON.stringify({ chatRoomId })
+                        method: 'GET',
+                        url: "@Url.Action("Invite","Chat")?chatRoomId="+chatRoomId,
                     });
             },
             });

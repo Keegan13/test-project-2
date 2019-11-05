@@ -345,9 +345,13 @@
             TYPING: 'chat.typing',
             NEW_MESSAGES: 'chat.messages',
             ON_MESSAGE: 'chat.on.message',
-            ON_MESSAGE_SENT: 'chat.on.sent'
+            ON_MESSAGE_SENT: 'chat.on.sent',
+            TAB_CHANGED: 'chat.on.tab'
         };
         const container = $(this);
+
+        $('<div id="shared-modal"></div>').insertAfter(container);
+
 
         let _config = $.extend({
             activeChatRoomId: null,
@@ -467,7 +471,6 @@
                         if (chatMessages) {
                             $(`<div class="chat-message" data-id="none">No more messages<div>`).prependTo(chatMessages);
                         }
-
                     }
 
                     loadMessagesLock = false;
@@ -545,7 +548,9 @@
         selectInviteForm().on('submit', ($event) => {
             $event.preventDefault();
             $event.stopPropagation();
-            _config.inviteUsers({ chatRoomId: activeRoomId });
+            _config.inviteUsers({ chatRoomId: activeRoomId }).then((data) => {
+                $("#shared-modal").html(data).modal("show");
+            });
         });
 
         const bindScroll = () => {
@@ -570,19 +575,20 @@
                 };
 
                 if (almostTop()) {
-                    console.log("almost top");
+
                     loadEarlierMessages();
                 }
                 if (almostBottom()) {
-                    console.log("almost bottom");
-                    //_config.messagesSeen({ chatRoomId: activeRoomId });
-                }
-                ///load messages here
-                //let position = $(e.target).scrollTop();
-                //if (position < 200) {
 
-                //}
-                //console.log();
+                    const id = $(this).data("id");
+
+                    const tab = selectTabs().find(`#chat${id}-tab`);
+                    if (tab && tab.hasClass("updated")) {
+                        _config.messagesSeen({ chatRoomId: id }).then((data) => {
+                            tab.removeClass("updated");
+                        });
+                    }
+                }
             });
         }
 
@@ -620,6 +626,16 @@
         $(document).on(EVENTS.NEW_USER, function ($event, { payload }) { });
 
         $(document).on(EVENTS.TYPING, function ($event, { payload }) { });
+        $(document).on(EVENTS.TAB_CHANGED, function ($event, { id }) {
+            setTimeout(() => {
+                const messages = selectMessages().find(`#chat${id}`);
+
+                if (messages) {
+                    messages.scrollTop(messages.prop('scrollHeight'));
+                }
+            }, 200)
+        });
+
 
         $(document).on(EVENTS.ON_MESSAGE_SENT, function ($event, { payload }) {
             const sentForm = selectSendForm();
@@ -627,11 +643,15 @@
         });
 
         $(document).on('click', 'a[data-toggle="tab"]', function (e) {
-            $(e.target).removeClass("updated");
             const id = $(this).data('id');
-            activeRoomId = id;
-            _config.messagesSeen({ chatRoomId: id });
+
+            if (activeRoomId !== id) {
+                activeRoomId = id;
+                container.trigger(EVENTS.TAB_CHANGED, { id: id });
+            }
         });
+
+
 
 
         return {
@@ -644,11 +664,6 @@
         }
     }
 })(jQuery);
-
-function partialModal(data) {
-    //when partial view returned to modal
-    $("#shared-modal").html(data).modal("show");
-}
 
 function clearModal() {
     console.log("Closing modal");

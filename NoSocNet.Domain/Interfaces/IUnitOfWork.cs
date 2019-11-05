@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NoSocNet.Domain.Interfaces
 {
@@ -7,7 +8,8 @@ namespace NoSocNet.Domain.Interfaces
         Task<int> SaveChangesAsync();
 
         void MarkDelete<T>(params T[] entities);
-        void MarkCreate<T>(params T[] entities);
+        void MarkCreate(params object[] entities);
+        void MarkCreate(IEnumerable<object> entities);
         void MarkUpdate<T>(params T[] entities);
     }
 }

@@ -62,7 +62,7 @@ namespace NoSocNet.Infrastructure.Domain
             return Task.CompletedTask;
         }
 
-        public Task AddParticipantsAsync(string chatRoomId, IEnumerable<string> usersIds)
+        public async Task AddParticipantsAsync(string chatRoomId, IEnumerable<string> usersIds)
         {
             var bind = usersIds.Select(x => new UsersChatRoomsEntity
             {
@@ -70,9 +70,9 @@ namespace NoSocNet.Infrastructure.Domain
                 UserId = x
             });
 
-            context.MarkCreate(bind);
 
-            return Task.CompletedTask;
+            context.MarkCreate(bind);
+            await this.context.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<ChatRoomEntity>> GetRecentChatRoomsAsync(string userId, string[] skipIds, int count = 10)

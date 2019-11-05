@@ -89,12 +89,13 @@ namespace NoSocNet.Controllers
             });
         }
 
-        public async Task<IActionResult> Invite(string id)
+        [HttpGet]
+        public async Task<IActionResult> Invite(string chatRoomId)
         {
             string currentUserId = identity.CurrentUserId;
             var users = await this.userRepo.GetNonParticipantsForRoomAsync(currentUserId, null, 10);
 
-            ChatRoomEntity chatRoom = await this.roomRepo.FindByIdAsync(id);
+            ChatRoomEntity chatRoom = await this.roomRepo.FindByIdAsync(chatRoomId);
 
             if (users != null && chatRoom != null)
             {
@@ -102,7 +103,7 @@ namespace NoSocNet.Controllers
                 var model = new InviteUsersViewModel
                 {
                     RoomName = roomVm.GetRoomName(identity.CurrentUserId),
-                    RoomId = id,
+                    RoomId = chatRoomId,
                     Users = users.Select(x => mapper.Map<UserEntity, UserViewModel>(x)).ToList()
                 };
 
@@ -113,7 +114,7 @@ namespace NoSocNet.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        //[ValidateAntiForgeryToken]
         public async Task<IActionResult> Invite(string roomId, string[] people = null)
         {
             if (people != null && people.Count() > 0)

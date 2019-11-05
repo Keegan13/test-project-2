@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -83,7 +85,12 @@ namespace NoSocNet.Infrastructure.Domain
             this.RemoveRange(entities);
         }
 
-        public void MarkCreate<T>(params T[] entities)
+        public void MarkCreate(params object[] entities)
+        {
+            this.AddRange(entities);
+        }
+
+        public void MarkCreate(IEnumerable<object> entities)
         {
             this.AddRange(entities);
         }

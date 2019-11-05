@@ -105,7 +105,7 @@ namespace NoSocNet.Core.Services
             return model;
         }
 
-        public async Task<ChatRoomDto> InviteToRoomAsync(string roomId, string userId)
+        public async Task<ChatRoomDto> InviteToRoomAsync(string userId, string roomId)
         {
             if (String.IsNullOrEmpty(userId))
             {
@@ -129,27 +129,26 @@ namespace NoSocNet.Core.Services
                 throw new Exception($"Cannot find user with Id {userId}");
             }
 
-            UserDto joinedUser = mapper.Map<UserEntity, UserDto>(user);
+            //var room = await this.roomRepo.FindByIdAsync(roomId);
 
-            var room = await this.roomRepo.FindByIdAsync(roomId);
-
-            if (room == null)
-            {
-                throw new Exception($"Cannot find room with Id {roomId}");
-            }
+            //if (room == null)
+            //{
+            //    throw new Exception($"Cannot find room with Id {roomId}");
+            //}
 
             await roomRepo.AddParticipantsAsync(roomId, new[] { userId });
-            await unitOfWork.SaveChangesAsync();
+
+            var room = await this.roomRepo.FindByIdAsync(roomId);
 
             ChatRoomDto model = mapper.Map<ChatRoomEntity, ChatRoomDto>(room);
 
             await notificator.Notificate(new ChatJoinNoitification(new NewChatUser
             {
                 Room = model,
-                User = joinedUser
-            }, model.Participants.Select(x => x.Id)));
+                User = mapper.Map<UserEntity, UserDto>(user)
+            }, model.Participants.Select(x => x.Id).Where(x => String.Compare(x, user.Id, true) != 0).ToArray()));
 
-            await notificator.Notificate(new NewChatNotification(model, new[] { userId }));
+            await notificator.Notificate(new NewChatNotification(model, new[] { user.Id }));
 
             return model;
         }
