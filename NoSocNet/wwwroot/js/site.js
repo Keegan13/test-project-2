@@ -424,24 +424,59 @@
         const selectActiveChat = () => {
         };
 
+        let loadMessagesLock = false;
+
         const loadEarlierMessages = () => {
+            if (loadMessagesLock) {
+                return;
+            }
+            loadMessagesLock = true;
+
             const messages = selectMessages();
             const tail = messages.find(`#chat${activeRoomId}`).find('.chat-message').first();
 
-            if (tail && tail.id) {
-                loadMessages(activeRoomId, tail.id).then((data) => {
+            if (!tail) {
+                loadMessagesLock = false;
+                return;
+            }
+
+            const tailId = tail.data("id");
+
+            if (tailId == "none") {
+                loadMessagesLock = false;
+                return;
+            }
+
+            const roomId = activeRoomId;
+
+            _config.loadMessages({ chatRoomId: roomId, tailMessageId: tailId })
+                .then((data) => {
                     if (data && data.length > 0) {
                         const chatMessages = messages.find(`#chat${data[0].chatRoomId}`);
                         if (chatMessages) {
                             const html = data.reduce((html, message) => {
-                                html += renderMessage({ ...message, currentUserId, USER_ID });
+                                html += renderMessage({ ...message, currentUserId: USER_ID });
                                 return html;
                             }, "");
                             $(html).prependTo(chatMessages);
                         }
                     }
+
+                    if (data.length === 0) {
+                        const chatMessages = messages.find(`#chat${roomId}`);
+                        if (chatMessages) {
+                            $(`<div class="chat-message" data-id="none">No more messages<div>`).prependTo(chatMessages);
+                        }
+
+                    }
+
+                    loadMessagesLock = false;
+                })
+                .catch((error) => {
+                    console.log(error);
+                    loadMessagesLock = false;
                 });
-            }
+
         };
 
         const messageEmmiter = (message) => {
@@ -514,24 +549,33 @@
         });
 
         const bindScroll = () => {
-            $(_config.messageContainerSelector).on('scroll', ".chat-messages", function (e) {
-                console.log('catching scroll event');
-
-                const fullHeight = getFullHeight(this);
-                const elementHeight = $(this).outerHeight(true);
+            //ToDo: refactor
+            $(".chat-messages").on('scroll', function (e) {
                 const scrollHeight = $(this).prop('scrollHeight');
+                const elementHeight = $(this).outerHeight(true);
+                const scrollTop = $(this).scrollTop();
+
                 const almostTop = () => {
-                    return true;
+                    if (scrollTop < 200) {
+                        return true;
+                    }
+
+                    return false;
                 };
                 const almostBottom = () => {
-                    return true;
+                    if (scrollTop + elementHeight + 100 >= scrollHeight)
+                        return true;
+
+                    return false;
                 };
 
                 if (almostTop()) {
+                    console.log("almost top");
                     loadEarlierMessages();
                 }
                 if (almostBottom()) {
-                    messagesSeen({ chatRoomId: activeRoomId });
+                    console.log("almost bottom");
+                    //_config.messagesSeen({ chatRoomId: activeRoomId });
                 }
                 ///load messages here
                 //let position = $(e.target).scrollTop();

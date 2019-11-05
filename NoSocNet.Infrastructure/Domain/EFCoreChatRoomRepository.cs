@@ -78,12 +78,9 @@ namespace NoSocNet.Infrastructure.Domain
         public async Task<IEnumerable<ChatRoomEntity>> GetRecentChatRoomsAsync(string userId, string[] skipIds, int count = 10)
         {
             IQueryable<ChatRoomEntity> query = this.context.Set<ChatRoomEntity>()
-                .Where(x => x.UserRooms.Any(u => u.UserId == userId));
-
-            query = query
+                .Where(x => x.UserRooms.Any(u => u.UserId == userId))
                 .Include(x => x.OwnerUser)
                 .Include(x => x.UserRooms).ThenInclude(x => x.User);
-            //.Include(x => x.Messages).ThenInclude(x => x.SenderUser);
 
 
             if (skipIds != null && skipIds.Length > 0)
@@ -92,7 +89,8 @@ namespace NoSocNet.Infrastructure.Domain
             }
 
 
-            query = query.OrderBy(x => x.Messages.OrderByDescending(m => m.SendDate).Select(m => m.SendDate).FirstOrDefault()).Take(10);
+            //query=query.OrderBy(x => x.Messages.OrderByDescending(m => m.SendDate).Select(m => m.SendDate).FirstOrDefault()).Take(10);
+            query = query.OrderBy(x => x.Id).Take(10);
 
             var data = await query
                 .ToListAsync();
