@@ -70,6 +70,35 @@ namespace NoSocNet.Controllers
             return View();
         }
 
+        private async Task<IEnumerable<string>> RandomUsers(int count)
+        {
+            return await context.Users.OrderBy(x => Guid.NewGuid()).Take(count).Select(x => x.Id).ToListAsync();
+        }
+        public async Task<IActionResult> Seed()
+        {
+            Random R = new Random();
+            int userCount = await context.Users.CountAsync();
+
+            var rooms = await context.ChatRooms.Where(x => x.UserRooms.Count() == 0)
+                .Select(x => x.Id).ToListAsync();
+
+            foreach (var room in rooms)
+            {
+                var users = await RandomUsers(R.Next(2, 5));
+
+                await context.AddRangeAsync(users.Select(x => new UsersChatRoomsEntity
+                {
+                    ChatRoomId = room,
+                    UserId = x
+                }).ToArray());
+                await context.SaveChangesAsync();
+            }
+
+            await context.SaveChangesAsync();
+            return Json(rooms);
+        }
+
+
         public async Task<IActionResult> FixDb()
         {
 
