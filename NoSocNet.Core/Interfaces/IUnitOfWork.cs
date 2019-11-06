@@ -7,9 +7,12 @@ namespace NoSocNet.Core.Interfaces
     {
         Task<int> SaveChangesAsync();
 
-        void MarkDelete<T>(params T[] entities);
+        void MarkDelete(params object[] entities);
+        void MarkDelete(IEnumerable<object> entities);
         void MarkCreate(params object[] entities);
         void MarkCreate(IEnumerable<object> entities);
-        void MarkUpdate<T>(params T[] entities);
+
+        void MarkUpdate(params object[] entities);
+        void MarkUpdate(IEnumerable<object> entities);
     }
 }

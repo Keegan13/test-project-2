@@ -7,8 +7,8 @@ namespace NoSocNet.Models
 {
     public class ChatJoinViewModel
     {
-        public string ChatName { get; set; }
-        public string ChatId { get; set; }
+        public ChatRoomViewModel ChatRoom { get; set; }
+
         public UserViewModel User { get; set; }
     }
 }

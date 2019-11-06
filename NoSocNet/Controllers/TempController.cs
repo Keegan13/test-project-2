@@ -79,7 +79,7 @@ namespace NoSocNet.Controllers
 
             var room = await this.roomRepo.FindByIdAsync(roomId);
             var model = mapper.Map<ChatRoomEntity, ChatRoomViewModel>(room);
-            return PartialView("_chat", model);
+            return PartialView("_chatTab", model);
         }
 
 

@@ -500,7 +500,6 @@
 
             if (chatMessages.length === 1) {
                 const html = renderMessage({ ...message, currentUserId: _config.userId })
-
                 $(html).appendTo(chatMessages);
                 $(chatMessages).trigger(EVENTS.ON_MESSAGE, { payload: message });
             }
@@ -545,7 +544,7 @@
             });
         });
 
-       
+
 
         const bindScroll = (element) => {
             if (!element) {
@@ -621,7 +620,35 @@
             }
 
         });
-        $(document).on(EVENTS.NEW_USER, function ($event, { payload }) { });
+        $(document).on(EVENTS.NEW_USER, function ($event, { payload }) {
+            const { chatRoom, user } = payload;
+            const tabs = selectTabs();
+            const tab = tabs.find(`#chat${chatRoom.id}-tab`);
+            const html = renderChatRoomTab({ ...chatRoom, currentUserId: USER_ID });
+
+            if (tab.length > 0) {
+                tab.replaceWith(html);
+            }
+            else {
+                const last = tabs.find(".chat-tab-link").last();
+                if (last.length > 0) {
+                    $(html).insertAfter(last);
+                }
+                else {
+                    $(html).prependTo(tabs);
+                }
+            }
+
+            if (activeRoomId === chatRoom.id) {
+                tabs.find(`#chat${chatRoom.id}-tab`).tab('show');
+                activeRoomId = chatRoom.id;
+                //container.trigger(EVENTS.TAB_CHANGED, { id: chatRoom.id });
+
+            }
+
+
+            tabs.find(`#chat${chatRoom.id}-tab`).addClass("updated");
+        });
 
         $(document).on(EVENTS.TYPING, function ($event, { payload }) { });
         $(document).on(EVENTS.TAB_CHANGED, function ($event, { id }) {

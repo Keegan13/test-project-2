@@ -67,12 +67,14 @@ namespace NoSocNet.Infrastructure.Services
         {
             var bind = usersIds.Select(x => new UsersChatRoomsEntity
             {
-                ChatRoomId = chatRoomId,
+                ChatRoomId = chatRoomId.ToLower(),
                 UserId = x
             });
 
-
+            ChatRoomEntity room = await context.Set<ChatRoomEntity>().FindAsync(chatRoomId);
+            room.IsPrivate = false;
             context.MarkCreate(bind);
+            context.MarkUpdate(room);
             await this.context.SaveChangesAsync();
         }
 

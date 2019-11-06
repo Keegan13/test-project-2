@@ -89,7 +89,6 @@ namespace NoSocNet.Controllers.API
                 {
                     var dto = notification.Notification as NewChatUser;
                     ChatJoinViewModel vm = mapper.Map<NewChatUser, ChatJoinViewModel>(dto);
-                    vm.ChatName = dto.Room.GetRoomName(identity.CurrentUserId);
 
                     return new TypedNotification(AppNotificationType.ChatJoin, vm);
                 }

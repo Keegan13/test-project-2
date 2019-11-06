@@ -59,7 +59,7 @@ namespace NoSocNet.Controllers.API
             string currentUserId = identity.CurrentUserId;
             await chatService.SetReadByUserAsync(currentUserId, input.ChatRoomId, input.HeadMessageId);
 
-            return Accepted();
+            return Accepted(new { input });
         }
 
         [HttpGet]
