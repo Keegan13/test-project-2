@@ -80,41 +80,37 @@ namespace NoSocNet.Infrastructure.Services
 
         public async Task<IEnumerable<ChatRoomEntity>> GetRecentChatRoomsAsync(string userId, string[] skipIds, int count = 10)
         {
-            IQueryable<ChatRoomEntity> query = this.context.Set<ChatRoomEntity>()
-                .Where(x => x.UserRooms.Any(u => u.UserId == userId))
+            List<ChatRoomEntity> items = await this.context.ChatRooms.FromSql("SELECT TOP({0}) * FROM [ChatRooms] AS CR" +
+                " left join [UsersRooms] as UR on UR.ChatRoomId = CR.Id " +
+                " where UR.UserId = {1} " +// AND  CR.Id NOT IN {2}" +
+                " ORDER BY(SELECT TOP(1) SendDate FROM Messages as M WHERE M.ChatRoomId = CR.Id ORDER BY M.Id DESC) DESC", count, userId)
+                //.Include(x => x.UserRooms).ThenInclude(x => x.User)   results in re-ordering 
                 .Include(x => x.OwnerUser)
-                .Include(x => x.UserRooms).ThenInclude(x => x.User);
-
-
-            if (skipIds != null && skipIds.Length > 0)
-            {
-                query = query.Where(x => !skipIds.Contains(x.Id));
-            }
-
-
-            //query=query.OrderBy(x => x.Messages.OrderByDescending(m => m.SendDate).Select(m => m.SendDate).FirstOrDefault()).Take(10);
-            query = query.OrderBy(x => x.Id).Take(10);
-
-            var data = await query
                 .ToListAsync();
 
-            var selectedChatRoomIds = data.Select(x => x.Id).ToArray();
+            var ids = items.Select(x => x.Id).ToArray();
+
+            ILookup<string, UsersChatRoomsEntity> usersLookup = (await this.context.Set<UsersChatRoomsEntity>()
+                .Include(x => x.User)
+                .Where(x => ids.Contains(x.ChatRoomId))
+                .ToArrayAsync())
+                .ToLookup(x => x.ChatRoomId, x => x);
+
+            ILookup<string, MessageEntity> messageLookup = (await this.context.Set<MessageEntity>()
+                .Where(x => ids.Contains(x.ChatRoomId))
+                .GroupBy(x => x.ChatRoomId)
+                .SelectMany(x => x.OrderByDescending(m => m.SendDate).Take(10))
+                .ToArrayAsync())
+                .ToLookup(x => x.ChatRoomId, x => x);
 
 
-
-
-            var messageLookup = (from message in this.context.Set<MessageEntity>()
-                                 where selectedChatRoomIds.Contains(message.ChatRoomId)
-                                 group message by message.ChatRoomId into messageGroup
-                                 select messageGroup)
-                            .SelectMany(x => x.OrderByDescending(m => m.SendDate).Take(10)).ToLookup((x) => x.ChatRoomId);
-
-            foreach (var item in data)
+            foreach (var item in items)
             {
                 item.Messages = messageLookup[item.Id].Reverse().ToList();
+                item.UserRooms = usersLookup[item.Id].ToList();
             }
 
-            return data;
+            return items;
         }
 
         public async Task<IEnumerable<ChatRoomEntity>> SearchRoomsAsync(string userId, string keywords, int take = 10, int skip = 0)
