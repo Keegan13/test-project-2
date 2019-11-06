@@ -14,6 +14,7 @@ using NoSocNet.Infrastructure.Data;
 using NoSocNet.Core.Interfaces;
 using AutoMapper;
 using NoSocNet.Extensions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace NoSocNet.Controllers
 {
@@ -37,6 +38,8 @@ namespace NoSocNet.Controllers
             this.roomRepo = roomRepo;
             this.identity = identity;
         }
+
+        [Authorize]
         public async Task<IActionResult> Index(string roomId = null, string[] loadedRoomsIds = null)
         {
             string userId = this.identity.CurrentUserId;
