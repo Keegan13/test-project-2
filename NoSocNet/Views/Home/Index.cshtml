@@ -80,16 +80,12 @@
                     });
                 },
                 loadRecent: function ({ loaded }) {
-
-                    const qs = loaded.reduce((agg, guid,idx) => {
-                        agg[idx] = guid;
-                        return agg;
-                    }, {});
-
                     return $.ajax({
-                        method: 'GET',
+                        method: 'POST',
                         url: '@(Url.Action("Chats","Chat"))',
-                        data: { loaded:qs }
+                        contentType: 'application/json',
+                        dataType:'json',
+                        data: JSON.stringify({ loaded })
                     });
                 },
                 loadChat: function ({ chatRoomId }) {

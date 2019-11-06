@@ -7,6 +7,6 @@ namespace NoSocNet.Models.API
 {
     public class RecentChatsInput
     {
-        public string[] Loaded { get; set; }
+        public List<string> Loaded { get; set; }
     }
 }

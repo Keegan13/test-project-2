@@ -699,9 +699,6 @@
             }
         });
 
-        $("#more-chats").on("click", function ($event) {
-
-        })
 
         $(document).on(EVENTS.ON_MESSAGE_SENT, function ($event, { payload }) {
             const sentForm = selectSendForm();

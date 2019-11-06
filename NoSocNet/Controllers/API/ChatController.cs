@@ -169,13 +169,13 @@ namespace NoSocNet.Controllers.API
             return BadRequest();
         }
 
-        [HttpGet]
+        [HttpPost]
         [Route("load-chats")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<ChatRoomViewModel[]>> Chats([FromQuery] string[] loaded = null)
+        public async Task<ActionResult<ChatRoomViewModel[]>> Chats([FromBody] RecentChatsInput input)
         {
             string currentUserId = identity.CurrentUserId;
-            var chats = await roomRepo.GetRecentChatRoomsAsync(currentUserId, loaded, 10);
+            var chats = await roomRepo.GetRecentChatRoomsAsync(currentUserId, input.Loaded.ToArray(), 10);
 
             return chats.Select(x => mapper.Map<ChatRoomEntity, ChatRoomViewModel>(x)).ToArray();
         }
