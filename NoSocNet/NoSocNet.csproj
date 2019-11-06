@@ -35,6 +35,9 @@
     <ProjectReference Include="..\NoSocNet.Domain\NoSocNet.Domain.csproj" />
     <ProjectReference Include="..\NoSocNet.Infrastructure\NoSocNet.Infrastructure.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="wwwroot\dist\" />
+  </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>
       <UserProperties />

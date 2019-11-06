@@ -4,21 +4,15 @@ import { Chat } from './containers';
 
 const rootElement: HTMLElement = document.getElementById('root');
 
-ReactDOM.render(<Chat/>,
-    rootElement
-);
-// const render = () => {
+const render = (Component) => {
+  ReactDOM.render(
+      <Component />,
+    rootElement,
+  );
+};
 
-// };
+render(Chat);
 
-// // if (module.hot) {
-// //     // Hot reloadable React components and translation json files
-// //     // modules.hot.accept does not accept dynamic dependencies,
-// //     // have to be constants at compile-time
-// //     module.hot.accept(() => {
-// //         ReactDOM.unmountComponentAtNode(rootElement);
-// //         render();
-// //     });
-// // }
-
-// render();
+if (module.hot) {
+  module.hot.accept('./containers', () => { render(Chat); });
+}

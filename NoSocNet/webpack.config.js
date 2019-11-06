@@ -16,13 +16,15 @@ module.exports = {
             {
                 test: /\.(ts|tsx)$/,
                 exclude: /node_modules/,
-                use: 'ts-loader'
-            },
-            // {
-            //     enforce: "pre",
-            //     test: /\.js$/,
-            //     loader: "source-map-loader"
-            // }
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        babelrc: false,
+                        presets: ["@babel/react", "@babel/typescript", "@babel/env"],
+                        plugins: ["react-hot-loader/babel"]
+                    }
+                }
+            }
         ]
     },
     resolve: {

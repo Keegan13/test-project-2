@@ -18,6 +18,7 @@ using NoSocNet.Infrastructure.Extensions;
 using NoSocNet.Core.Services;
 using NoSocNet.Domain.Models;
 using NoSocNet.Infrastructure.Data;
+using Microsoft.AspNetCore.SpaServices.Webpack;
 
 namespace NoSocNet
 {
@@ -44,7 +45,7 @@ namespace NoSocNet
 
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
-                    Configuration.GetConnectionString("DefaultConnection")));
+                    Configuration.GetConnectionString("LocalConnection")));
 
             services.AddHttpContextAccessor();
 
@@ -88,6 +89,11 @@ namespace NoSocNet
             }
 
             app.UseHttpsRedirection();
+            app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
+            {
+                HotModuleReplacement = true,
+                ConfigFile="./webpack.config.js"
+            });
             app.UseStaticFiles();
             app.UseCookiePolicy();
 
@@ -100,8 +106,13 @@ namespace NoSocNet
                     template: "{controller=Home}/{action=Index}/{id?}");
                 routes.MapRoute(
                     name: "api",
-                    template: "api/{controller}/{id?}",
+                    template: "api/{controller}",
                     defaults: new { Action = "Index" });
+                routes.MapRoute(
+                    name: "react",
+                    template: "react",
+                    defaults: new { area = "React", controller = "Default", action = "Index" }
+                  );
             });
         }
     }
