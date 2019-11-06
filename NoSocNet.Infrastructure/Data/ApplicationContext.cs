@@ -70,7 +70,7 @@ namespace NoSocNet.Infrastructure.Data
             entityTypeBuilder.HasKey(x => x.Id);
             entityTypeBuilder.HasOne(x => x.SenderUser).WithMany(x => x.Messages).HasForeignKey(x => x.SenderUserId);
             entityTypeBuilder.HasIndex(x => x.SenderUserId);
-
+            entityTypeBuilder.HasIndex(x => x.SendDate);
         }
 
         protected virtual void ConfigureChatRooms(EntityTypeBuilder<ChatRoomEntity> entityTypeBuilder)
@@ -80,10 +80,6 @@ namespace NoSocNet.Infrastructure.Data
             entityTypeBuilder.HasOne(x => x.OwnerUser).WithMany().HasForeignKey(x => x.OwnerUserId);
         }
 
-        public void MarkDelete<T>(params T[] entities)
-        {
-            this.RemoveRange(entities);
-        }
 
         public void MarkCreate(params object[] entities)
         {
@@ -95,14 +91,29 @@ namespace NoSocNet.Infrastructure.Data
             this.AddRange(entities);
         }
 
-        public void MarkUpdate<T>(params T[] entities)
+        public Task<int> SaveChangesAsync()
+        {
+            return base.SaveChangesAsync();
+        }
+
+        public void MarkDelete(params object[] entities)
+        {
+            this.RemoveRange(entities);
+        }
+
+        public void MarkDelete(IEnumerable<object> entities)
+        {
+            this.RemoveRange(entities);
+        }
+
+        public void MarkUpdate(params object[] entities)
         {
             this.UpdateRange(entities);
         }
 
-        public Task<int> SaveChangesAsync()
+        public void MarkUpdate(IEnumerable<object> entities)
         {
-            return base.SaveChangesAsync();
+            this.UpdateRange(entities);
         }
     }
 }
