@@ -21,10 +21,10 @@
                     <div class="nav nav-tabs nav-fill" id="nav-tab" role="tablist">
                         @foreach (var item in Model.Rooms)
                         {
-                            <a class="nav-item nav-link w-100 chat-tab-link @(item.Id==selectedId?"active":"") @(item.HasUnread?"updated":"")" id="chat@(item.Id)-tab" data-toggle="tab" data-id="@item.Id" href="#chat@(item.Id)" role="tab" aria-controls="chat@(item.Id)" aria-selected="@(item.Id==selectedId?"true":"false")">
-                                <i class="fa @(item.IsPrivate?"fa fa-user":"fa fa-users")"></i>
-                                @item.RoomName
-                            </a>
+                        <a class="nav-item nav-link w-100 chat-tab-link @(item.Id==selectedId?"active":"") @(item.HasUnread?"updated":"")" id="chat@(item.Id)-tab" data-toggle="tab" data-id="@item.Id" href="#chat@(item.Id)" role="tab" aria-controls="chat@(item.Id)" aria-selected="@(item.Id==selectedId?"true":"false")">
+                            <i class="fa @(item.IsPrivate?"fa fa-user":"fa fa-users")"></i>
+                            @item.RoomName
+                        </a>
                         }
                     </div>
                 </div>
@@ -45,7 +45,7 @@
         <div class="tab-content" id="nav-tabContent">
             @foreach (var item in Model.Rooms)
             {
-                <partial name="_chatTab" model="item" />
+            <partial name="_chatTab" model="item" />
             }
         </div>
 
@@ -78,7 +78,20 @@
                     return new Promise((resolve, reject) => {
                         reject("no load mesasge endpoint");
                     });
-            },
+                },
+                loadRecent: function ({ loaded }) {
+
+                    const qs = loaded.reduce((agg, guid,idx) => {
+                        agg[idx] = guid;
+                        return agg;
+                    }, {});
+
+                    return $.ajax({
+                        method: 'GET',
+                        url: '@(Url.Action("Chats","Chat"))',
+                        data: { loaded:qs }
+                    });
+                },
                 loadChat: function ({ chatRoomId }) {
                 return $.ajax({
                     method: 'GET',

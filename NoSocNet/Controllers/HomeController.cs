@@ -40,11 +40,11 @@ namespace NoSocNet.Controllers
         }
 
         [Authorize]
-        public async Task<IActionResult> Index(string roomId = null, string[] loadedRoomsIds = null)
+        public async Task<IActionResult> Index(string roomId = null)
         {
             string userId = this.identity.CurrentUserId;
 
-            var rooms = (await roomRepo.GetRecentChatRoomsAsync(userId, loadedRoomsIds.Select(x => x).ToArray()));
+            var rooms = (await roomRepo.GetRecentChatRoomsAsync(userId, null, 25));
 
             var reads = await roomRepo.GetHasUnreadAsync(rooms.Select(x => x.Id).ToArray(), userId);
 

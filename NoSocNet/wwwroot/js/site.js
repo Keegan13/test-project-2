@@ -335,7 +335,7 @@
 
 
     $.fn.chat = function (config) {
-        const GUID = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/g;
+
         const EVENTS = {
             NEW_MESSAGE: 'chat.message',
             NEW_CHAT: 'chat.room',
@@ -363,6 +363,7 @@
             loadUser: function (id) {
 
             },
+            loadRecent: () => { },
             messagesSeen: function ({ chatRoomId }) { console.log("mesages seen"); },
             loadMessages: function ({ chatRoomId, tailMessageId }) {
             },
@@ -591,8 +592,8 @@
 
         bindScroll();
 
-        $(document).on(EVENTS.NEW_CHAT, function ($event, { payload }) {
-            const chat = payload;
+
+        const handleChat = (chat) => {
             const tabs = selectTabs();
             const messages = selectMessages();
 
@@ -618,7 +619,11 @@
                 tabs.find(`#chat${chat.id}-tab`).tab('show');
                 activeRoomId = chat.id;
             }
+        };
 
+        $(document).on(EVENTS.NEW_CHAT, function ($event, { payload }) {
+            const chat = payload;
+            handleChat(chat);
         });
         $(document).on(EVENTS.NEW_USER, function ($event, { payload }) {
             const { chatRoom, user } = payload;
@@ -661,6 +666,42 @@
             }, 200)
         });
 
+        let loadResentLock = false;
+
+        $('.chat-tab-links').on("scroll", function (e) {
+            const scrollHeight = $(this).prop('scrollHeight');
+            const elementHeight = $(this).outerHeight(true);
+            const scrollTop = $(this).scrollTop();
+
+            const almostBottom = () => {
+                if (scrollTop + elementHeight + 100 >= scrollHeight)
+                    return true;
+
+                return false;
+            };
+
+            if (almostBottom() && !loadResentLock) {
+                loadResentLock = true;
+                let ids = $.map(selectTabs().find("[data-id]"), (x) => {
+                    return x.dataset.id;
+                })
+                _config.loadRecent({ loaded: ids })
+                    .then(data => {
+                        if (data && data.length) {
+                            data.forEach((x) => {
+                                handleChat(x);
+                            });
+                        }
+                        loadResentLock = false;
+                    }).catch((error) => {
+                        loadResentLock = false;
+                    });
+            }
+        });
+
+        $("#more-chats").on("click", function ($event) {
+
+        })
 
         $(document).on(EVENTS.ON_MESSAGE_SENT, function ($event, { payload }) {
             const sentForm = selectSendForm();

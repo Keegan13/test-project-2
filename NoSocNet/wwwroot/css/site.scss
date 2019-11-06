@@ -102,6 +102,7 @@ textarea.message-input {
     text-align: left !important;
     overflow: hidden;
     white-space: nowrap;
+    height: 54px;
 
     &.private {
         color: red;

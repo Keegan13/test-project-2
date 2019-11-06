@@ -78,7 +78,8 @@ textarea.message-input {
   text-overflow: ellipsis;
   text-align: left !important;
   overflow: hidden;
-  white-space: nowrap; }
+  white-space: nowrap;
+  height: 54px; }
   .chat-tab-link.private, .chat-tab-user-link.private {
     color: red; }
 
