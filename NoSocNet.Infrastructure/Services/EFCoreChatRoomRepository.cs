@@ -80,15 +80,27 @@ namespace NoSocNet.Infrastructure.Services
 
         public async Task<IEnumerable<ChatRoomEntity>> GetRecentChatRoomsAsync(string userId, string[] skipIds, int count = 10)
         {
-            List<ChatRoomEntity> items = await this.context.ChatRooms.FromSql("SELECT TOP({0}) * FROM [ChatRooms] AS CR" +
+            string exclude = null;
+            if (skipIds != null && skipIds.Count() > 0)
+            {
+                exclude = $"AND CR.Id NOT IN({skipIds.Aggregate("",(str, guid) => str += $"N'{guid.ToLower()}',").Trim(',')})";
+            }
+
+             List<ChatRoomEntity> items = await this.context.ChatRooms.FromSql("SELECT TOP({0}) * FROM [ChatRooms] AS CR" +
                 " left join [UsersRooms] as UR on UR.ChatRoomId = CR.Id " +
-                " where UR.UserId = {1} " +// AND  CR.Id NOT IN {2}" +
-                " ORDER BY(SELECT TOP(1) SendDate FROM Messages as M WHERE M.ChatRoomId = CR.Id ORDER BY M.Id DESC) DESC", count, userId)
-                //.Include(x => x.UserRooms).ThenInclude(x => x.User)   results in re-ordering 
+                " where UR.UserId = {1} "
+                + (exclude ?? "") +
+                  "ORDER BY(SELECT TOP(1) SendDate FROM Messages as M WHERE M.ChatRoomId = CR.Id ORDER BY M.Id DESC) DESC", count, userId)
+                //.Include(x => x.UserRooms).ThenInclude(x => x.User)   //results in re-ordering 
                 .Include(x => x.OwnerUser)
                 .ToListAsync();
 
+            //var wtfdata = await this.context.ChatRooms.FromSql("recentChats @p0 , @p1 , @p2", count, userId, exclude).ToListAsync();
+
+
             var ids = items.Select(x => x.Id).ToArray();
+
+            //shoul be removed
 
             ILookup<string, UsersChatRoomsEntity> usersLookup = (await this.context.Set<UsersChatRoomsEntity>()
                 .Include(x => x.User)
