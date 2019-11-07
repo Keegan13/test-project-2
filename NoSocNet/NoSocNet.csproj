@@ -16,6 +16,7 @@
   <ItemGroup>
     <None Remove="Scripts\ChatClient\src\index.ts" />
     <None Remove="Scripts\ChatClient\webpack.config.js" />
+    <None Remove="Scripts\Live\index.ts" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="9.0.0" />
@@ -37,6 +38,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\dist\" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="Scripts\Live\src\index.ts" />
   </ItemGroup>
   <ProjectExtensions>
     <VisualStudio>

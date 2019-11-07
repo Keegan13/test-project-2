@@ -4,7 +4,8 @@
   "description": "no",
   "scripts": {
     "build": "webpack --config webpack.config.js --mode development",
-    "build:prod": "webpack --config webpack.config.js --mode production"
+    "build:prod": "webpack --config webpack.config.js --mode production",
+    "live:build": "webpack --config ./Scripts/live/webpack.config.js --mode production"
   },
   "author": "",
   "license": "ISC",
