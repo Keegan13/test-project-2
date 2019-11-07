@@ -44,8 +44,13 @@ export class Connection {
             }
         };
 
-        xhr.onerror = reconnect;
-        xhr.ontimeout = reconnect
+        xhr.onerror = function() {
+            reconnect();
+        }
+
+        xhr.ontimeout = function () {
+            reconnect();
+        }
 
         try {
             xhr.send(encodeURI('connectionId=' + this.connectionId));
