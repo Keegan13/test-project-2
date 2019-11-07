@@ -80,6 +80,12 @@ namespace NoSocNet
             {
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
+                app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
+                {
+                    EnvParam = new { mode = "development" },
+                    HotModuleReplacement = true,
+                    ConfigFile = "./webpack.config.js"
+                });
             }
             else
             {
@@ -89,11 +95,7 @@ namespace NoSocNet
             }
 
             app.UseHttpsRedirection();
-            app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
-            {
-                HotModuleReplacement = true,
-                ConfigFile="./webpack.config.js"
-            });
+
             app.UseStaticFiles();
             app.UseCookiePolicy();
 

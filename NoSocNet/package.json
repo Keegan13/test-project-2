@@ -3,7 +3,8 @@
   "version": "0.0.3",
   "description": "no",
   "scripts": {
-    "build": "webpack --config webpack.config.js"
+    "build": "webpack --config webpack.config.js --mode development",
+    "build:prod": "webpack --config webpack.config.js --mode production"
   },
   "author": "",
   "license": "ISC",
