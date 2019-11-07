@@ -1,21 +1,19 @@
-﻿function callback(message: any) {
+function callback(message) {
     parent._onMessageReceived(message);
 }
-
-function Connection(options: any) {
-    let _url = options.url;
-    let _connectionId = options.connectionId;
-    let count = 0;
-    const _onMessageReceived = function (data: any) {
+function Connection(options) {
+    var _url = options.url;
+    var _connectionId = options.connectionId;
+    var count = 0;
+    var _onMessageReceived = function (data) {
         count++;
         var p = document.createElement("pre");
         p.innerHTML = JSON.stringify(data);
         document.body.appendChild(p);
         callback(data);
     };
-
-    let _send = function () {
-        const xhr = new XMLHttpRequest();
+    var _send = function () {
+        var xhr = new XMLHttpRequest();
         xhr.open('POST', _url);
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
         xhr.responseType = 'json';
@@ -25,14 +23,12 @@ function Connection(options: any) {
                 _send();
             }
         };
-
         xhr.onerror = function () {
             _send();
-        }
-
+        };
         xhr.ontimeout = function () {
             _send();
-        }
+        };
         try {
             xhr.send(encodeURI('connectionId=' + _connectionId));
         }
@@ -40,24 +36,19 @@ function Connection(options: any) {
             console.log(error);
             _send();
         }
-    }
-
-    let _start = function () {
+    };
+    var _start = function () {
         _send();
         console.log("Starting live session " + _connectionId);
-    }
-
+    };
     return {
         start: _start
     };
 }
-
-function connectLive(url: string, connectionId: string) {
-    var connection: Connection = new Connection({
-        url,
-        connectionId
+function connectLive(url, connectionId) {
+    var connection = new Connection({
+        url: url,
+        connectionId: connectionId
     });
-
     connection.start();
 }
-window.connectLive = connectLive;
