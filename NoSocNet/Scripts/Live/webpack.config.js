@@ -21,10 +21,15 @@ module.exports = {
                     loader: 'babel-loader',
                     options: {
                         babelrc: false,
-                        presets: ["@babel/typescript", "@babel/env"]
+                        presets: ["@babel/typescript", "@babel/env"],
+                        plugins: ["@babel/plugin-proposal-class-properties"]
                     }
                 }
             }
         ]
     },
+    resolve: {
+        modules: [path.resolve(__dirname, "./src"), 'node_modules'],
+        extensions: ['.ts', '.js'],
+    }
 };

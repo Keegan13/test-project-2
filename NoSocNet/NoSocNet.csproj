@@ -6,7 +6,8 @@
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
     <RazorCompileOnBuild>false</RazorCompileOnBuild>
     <RazorCompileOnPublish>false</RazorCompileOnPublish>
-    <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
+    <!--<TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>-->
+    <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
   </PropertyGroup>
 
   <ItemGroup>

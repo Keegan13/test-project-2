@@ -19,6 +19,7 @@ using NoSocNet.Core.Services;
 using NoSocNet.Domain.Models;
 using NoSocNet.Infrastructure.Data;
 using Microsoft.AspNetCore.SpaServices.Webpack;
+using NoSocNet.Extensions;
 
 namespace NoSocNet
 {
@@ -45,7 +46,7 @@ namespace NoSocNet
 
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
-                    Configuration.GetConnectionString("LocalConnection")));
+                    Configuration.GetConnectionString("DefaultConnection")));
 
             services.AddHttpContextAccessor();
 
@@ -76,16 +77,20 @@ namespace NoSocNet
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.IsHotModules())
             {
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
-                app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
+
+                if (env.IsHotModules())
                 {
-                    EnvParam = new { mode = "development" },
-                    HotModuleReplacement = true,
-                    ConfigFile = "./webpack.config.js"
-                });
+                    app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
+                    {
+                        EnvParam = new { mode = "development" },
+                        HotModuleReplacement = true,
+                        ConfigFile = "./webpack.config.js"
+                    });
+                }
             }
             else
             {

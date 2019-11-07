@@ -86,76 +86,99 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports) {
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+
+// CONCATENATED MODULE: ./Scripts/live/src/Connection.ts
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var Connection =
+/*#__PURE__*/
+function () {
+  function Connection(url, connectionId, onMessageCallback) {
+    _classCallCheck(this, Connection);
+
+    _defineProperty(this, "url", void 0);
+
+    _defineProperty(this, "connectionId", void 0);
+
+    _defineProperty(this, "onMessageCallback", void 0);
+
+    this.url = url;
+    this.connectionId = connectionId;
+    this.onMessageCallback = onMessageCallback;
+  }
+
+  _createClass(Connection, [{
+    key: "start",
+    value: function start() {
+      this.request();
+      console.log("Starting live session " + this.connectionId);
+    }
+  }, {
+    key: "onMessage",
+    value: function onMessage(data) {
+      if (this.onMessageCallback) this.onMessageCallback(data);
+    }
+  }, {
+    key: "request",
+    value: function request() {
+      var _this = this;
+
+      var xhr = new XMLHttpRequest();
+
+      var reconnect = function reconnect() {
+        _this.request();
+      };
+
+      var onResponse = function onResponse(data) {
+        _this.onMessage(data);
+      };
+
+      xhr.open('POST', this.url);
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      xhr.responseType = 'json';
+
+      xhr.onload = function (e) {
+        if (this.status == 200) {
+          onResponse(this.response);
+          reconnect();
+        }
+      };
+
+      xhr.onerror = reconnect;
+      xhr.ontimeout = reconnect;
+
+      try {
+        xhr.send(encodeURI('connectionId=' + this.connectionId));
+      } catch (error) {
+        console.log(error);
+        this.request();
+      }
+    }
+  }]);
+
+  return Connection;
+}();
+// CONCATENATED MODULE: ./Scripts/live/src/index.ts
+
 
 function callback(message) {
   parent._onMessageReceived(message);
 }
 
-function Connection(options) {
-  var _url = options.url;
-  var _connectionId = options.connectionId;
-  var count = 0;
-
-  var _onMessageReceived = function _onMessageReceived(data) {
-    count++;
-    var p = document.createElement("pre");
-    p.innerHTML = JSON.stringify(data);
-    document.body.appendChild(p);
-    callback(data);
-  };
-
-  var _send = function _send() {
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', _url);
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.responseType = 'json';
-
-    xhr.onload = function (e) {
-      if (this.status == 200) {
-        _onMessageReceived(this.response);
-
-        _send();
-      }
-    };
-
-    xhr.onerror = function () {
-      _send();
-    };
-
-    xhr.ontimeout = function () {
-      _send();
-    };
-
-    try {
-      xhr.send(encodeURI('connectionId=' + _connectionId));
-    } catch (error) {
-      console.log(error);
-
-      _send();
-    }
-  };
-
-  var _start = function _start() {
-    _send();
-
-    console.log("Starting live session " + _connectionId);
-  };
-
-  return {
-    start: _start
-  };
-}
-
-function connectLive(url, connectionId) {
-  var connection = new Connection({
-    url: url,
-    connectionId: connectionId
-  });
+window.connectLive = function (url, connectionId) {
+  var connection = new Connection(url, connectionId, callback);
   connection.start();
-}
-
-window.connectLive = connectLive;
+};
 
 /***/ })
 /******/ ]);
