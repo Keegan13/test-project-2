@@ -8,12 +8,30 @@ namespace NoSocNet.Core.Interfaces.Repositories
 {
     public interface ISurveyRepository : IRepository<SurveyEntity, int>
     {
-        Task<IEnumerable<SurveyEntity>> GetAvaliable();
-
 
     }
 
-    public interface IQuestionReposiotry : IRepository<QuestionEntity, int>
+    public interface IQuestionRepository : IRepository<QuestionEntity, int>
+    {
+
+    }
+
+    public interface IOptionRepository : IRepository<OptionEntity, int>
+    {
+
+    }
+
+    public interface ISurveyInstanceRepository : IRepository<SurveyInstanceEntity, int>
+    {
+
+    }
+
+    public interface ISurveyUserResultRepository : IRepository<SurveyUserResultEntity, int>
+    {
+
+    }
+
+    public interface IQuestionResultRepository : IRepository<QuestionResultEntity, int>
     {
 
     }

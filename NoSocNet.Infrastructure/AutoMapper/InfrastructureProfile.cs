@@ -11,6 +11,7 @@ namespace NoSocNet.Infrastructure.AutoMapper
     {
         public InfrastructureProfile()
         {
+            #region Chat
             CreateMap<ChatRoomEntity, ChatRoomDto>()
                 .ForMember(x => x.Owner, opt => opt.MapFrom(o => o.OwnerUser))
                 .ForMember(x => x.OwnerId, opt => opt.MapFrom(o => o.OwnerUserId))
@@ -31,6 +32,36 @@ namespace NoSocNet.Infrastructure.AutoMapper
             CreateMap<MessageEntity, MessageDto>()
                 .ForMember(x => x.Sender, opt => opt.MapFrom(o => o.SenderUser))
                 .ForMember(x => x.ReadByUsers, opt => opt.MapFrom(x => x.ReadByUsers));
+
+            #endregion
+
+            #region Survey
+
+            CreateMap<SurveyEntity, SurveyDto>()
+                .ReverseMap();
+
+            CreateMap<QuestionEntity, QuestionDto>()
+                .ReverseMap();
+
+
+            CreateMap<OptionEntity, OptionDto>()
+                .ReverseMap();
+
+            CreateMap<SurveyInstanceEntity, SurveyInstanceDto>()
+                .ReverseMap();
+
+            CreateMap<SurveyUserResultEntity, SurveyUserResultDto>()
+                .ReverseMap();
+
+
+            CreateMap<QuestionResultEntity, QuestionResultDto>()
+                .ReverseMap()
+                .ForMember(x => x.Question, opt => opt.Ignore())
+                .ForMember(x => x.SelectedOptions, opt => opt.Ignore())
+                .ForMember(x => x.SurveyUserResult, opt => opt.Ignore());
+
+            #endregion
         }
+
     }
 }

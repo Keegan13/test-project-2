@@ -33,6 +33,8 @@ namespace NoSocNet.Core.Models
 
         public List<OptionDto> Options { get; set; }
 
+        public SurveyDto Survey { get; set; }
+
         public QuestionDto()
         {
             this.Options = new List<OptionDto>();

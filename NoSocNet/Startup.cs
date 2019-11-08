@@ -49,13 +49,15 @@ namespace NoSocNet
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddHttpContextAccessor();
 
             services.AddScoped<DbContext, ApplicationDbContext>(factory => factory.GetRequiredService<ApplicationDbContext>());
             services.AddScoped(factory => factory.GetRequiredService<ApplicationDbContext>() as IUnitOfWork);
-            services.AddScoped<IChatRoomRepository, EFCoreChatRoomRepository>();
-            services.AddScoped<IUserRepository, EFCoreUserRepository>();
-            services.AddScoped<IMessageRepository, EFCoreMessageRepository>();
+
+            services.AddScoped<SurveyService>();
+
+            services.AddHttpContextAccessor();
+            services.AddEFCoreRepositories();
+
             services.AddSingleton<NotificationService>();
 
             services.AddTransient<NotificationObserver>();
@@ -110,17 +112,19 @@ namespace NoSocNet
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
+                    name: "area",
+                    template: "{area}/{controller=Default}/{action=index}"
+                  );
+                routes.MapRoute(
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
+
+
                 routes.MapRoute(
                     name: "api",
                     template: "api/{controller}",
                     defaults: new { Action = "Index" });
-                routes.MapRoute(
-                    name: "react",
-                    template: "react",
-                    defaults: new { area = "React", controller = "Default", action = "Index" }
-                  );
+
             });
         }
     }
