@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NoSocNet.Core.Interfaces
+namespace NoSocNet.Core.Interfaces.Repositories
 {
     public interface IUserRepository
     {

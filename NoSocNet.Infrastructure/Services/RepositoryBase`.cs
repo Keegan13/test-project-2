@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NoSocNet.Core.Interfaces;
+using NoSocNet.Core.Interfaces.Repositories;
 using NoSocNet.Domain.Interfaces;
 using NoSocNet.Infrastructure.Data;
 using System;

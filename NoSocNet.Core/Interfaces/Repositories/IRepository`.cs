@@ -1,10 +1,11 @@
-﻿using System.Collections;
+﻿using NoSocNet.Domain.Interfaces;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NoSocNet.Core.Interfaces
+namespace NoSocNet.Core.Interfaces.Repositories
 {
-    public interface IRepository<TEntity, TKey> where TEntity : class
+    public interface IRepository<TEntity, TKey> where TEntity : class, IIdentifiable<TKey>
     {
         Task<TKey> CreateAsync(TEntity entity);
 

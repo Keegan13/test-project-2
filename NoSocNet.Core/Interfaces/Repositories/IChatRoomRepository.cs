@@ -3,12 +3,14 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NoSocNet.Core.Interfaces
+namespace NoSocNet.Core.Interfaces.Repositories
 {
     public interface IChatRoomRepository : IRepository<ChatRoomEntity, string>
     {
         Task<ChatRoomEntity> GetPrivateRoomAsync(string firstUserId, string secondUserId);
+
         Task CreatePrivateRoomAsync(string firstUserId, string secondUserId);
+
         Task AddParticipantsAsync(string chatRoomId, IEnumerable<string> usersIds);
 
         Task<IEnumerable<ChatRoomEntity>> GetRecentChatRoomsAsync(string userId, string[] skipIds, int count = 10);

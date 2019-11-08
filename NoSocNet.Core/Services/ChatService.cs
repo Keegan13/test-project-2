@@ -7,6 +7,7 @@ using NoSocNet.Core.Models;
 using AutoMapper;
 using NoSocNet.Core.Interfaces;
 using System.Linq;
+using NoSocNet.Core.Interfaces.Repositories;
 
 namespace NoSocNet.Core.Services
 {

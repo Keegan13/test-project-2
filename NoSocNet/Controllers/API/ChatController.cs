@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NoSocNet.Core.Interfaces;
+using NoSocNet.Core.Interfaces.Repositories;
 using NoSocNet.Core.Models;
 using NoSocNet.Domain.Models;
 using NoSocNet.Extensions;

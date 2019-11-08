@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NoSocNet.Core.Interfaces;
+using NoSocNet.Core.Interfaces.Repositories;
 using NoSocNet.Domain.Models;
 using NoSocNet.Infrastructure.Data;
 using System;
@@ -83,17 +84,17 @@ namespace NoSocNet.Infrastructure.Services
             string exclude = null;
             if (skipIds != null && skipIds.Count() > 0)
             {
-                exclude = $"AND CR.Id NOT IN({skipIds.Aggregate("",(str, guid) => str += $"N'{guid.ToLower()}',").Trim(',')})";
+                exclude = $"AND CR.Id NOT IN({skipIds.Aggregate("", (str, guid) => str += $"N'{guid.ToLower()}',").Trim(',')})";
             }
 
-             List<ChatRoomEntity> items = await this.context.ChatRooms.FromSql("SELECT TOP({0}) * FROM [ChatRooms] AS CR" +
-                " left join [UsersRooms] as UR on UR.ChatRoomId = CR.Id " +
-                " where UR.UserId = {1} "
-                + (exclude ?? "") +
-                  "ORDER BY(SELECT TOP(1) SendDate FROM Messages as M WHERE M.ChatRoomId = CR.Id ORDER BY M.Id DESC) DESC", count, userId)
-                //.Include(x => x.UserRooms).ThenInclude(x => x.User)   //results in re-ordering 
-                .Include(x => x.OwnerUser)
-                .ToListAsync();
+            List<ChatRoomEntity> items = await this.context.ChatRooms.FromSql("SELECT TOP({0}) * FROM [ChatRooms] AS CR" +
+               " left join [UsersRooms] as UR on UR.ChatRoomId = CR.Id " +
+               " where UR.UserId = {1} "
+               + (exclude ?? "") +
+                 "ORDER BY(SELECT TOP(1) SendDate FROM Messages as M WHERE M.ChatRoomId = CR.Id ORDER BY M.Id DESC) DESC", count, userId)
+               //.Include(x => x.UserRooms).ThenInclude(x => x.User)   //results in re-ordering 
+               .Include(x => x.OwnerUser)
+               .ToListAsync();
 
             //var wtfdata = await this.context.ChatRooms.FromSql("recentChats @p0 , @p1 , @p2", count, userId, exclude).ToListAsync();
 

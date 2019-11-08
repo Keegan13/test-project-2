@@ -15,6 +15,7 @@ using NoSocNet.Core.Interfaces;
 using AutoMapper;
 using NoSocNet.Extensions;
 using Microsoft.AspNetCore.Authorization;
+using NoSocNet.Core.Interfaces.Repositories;
 
 namespace NoSocNet.Controllers
 {

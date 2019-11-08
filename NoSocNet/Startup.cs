@@ -20,6 +20,7 @@ using NoSocNet.Domain.Models;
 using NoSocNet.Infrastructure.Data;
 using Microsoft.AspNetCore.SpaServices.Webpack;
 using NoSocNet.Extensions;
+using NoSocNet.Core.Interfaces.Repositories;
 
 namespace NoSocNet
 {
